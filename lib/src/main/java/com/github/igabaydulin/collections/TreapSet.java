@@ -19,6 +19,11 @@ public class TreapSet<T extends Comparable<T>> implements Set<T> {
     this.treap = treap;
   }
 
+  public TreapSet(Collection<T> collection) {
+    this.treap = new Treap<>();
+    addAll(collection);
+  }
+
   @Override
   public int size() {
     return treap.size();
