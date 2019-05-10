@@ -15,6 +15,10 @@ public class TreapSet<T extends Comparable<T>> implements Set<T> {
     this(new Treap<>());
   }
 
+  public TreapSet(long seed) {
+    this(new Treap<>(seed));
+  }
+
   public TreapSet(Treap<T> treap) {
     this.treap = treap;
   }

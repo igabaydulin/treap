@@ -110,17 +110,42 @@ public class Treap<T extends Comparable<T>> {
     }
 
     public boolean add(AtomicReference<Node<T>> node, T value, double priority) {
-      if (contains(value)) {
-        return false; // TODO: Is there a way to avoid this check?
+      if (priority < this.getPriority()) {
+        if (this.getValue().compareTo(value) < 0) {
+          if (Objects.isNull(this.getRight())) {
+            node.set(new Node<>(this.value, this.priority, this.left, new Node<>(value, priority)));
+            return true;
+          }
+
+          AtomicReference<Node<T>> right = new AtomicReference<>(this.getRight());
+          boolean isAdded = this.getRight().add(right, value, priority);
+          node.set(new Node<>(this.value, this.priority, this.left, right.get()));
+          return isAdded;
+        } else if (this.getValue().compareTo(value) > 0) {
+          if (Objects.isNull(this.getLeft())) {
+            node.set(new Node<>(this.value, this.priority, new Node<>(value, priority), this.right));
+            return true;
+          }
+
+          AtomicReference<Node<T>> left = new AtomicReference<>(this.getLeft());
+          boolean isAdded = this.getLeft().add(left, value, priority);
+          node.set(new Node<>(this.value, this.priority, left.get(), this.right));
+          return isAdded;
+        } else {
+          return false;
+        }
+      } else {
+        if (this.getValue().compareTo(value) == 0) {
+          return false;
+        }
+
+        AtomicReference<Node<T>> left = new AtomicReference<>();
+        AtomicReference<Node<T>> right = new AtomicReference<>();
+        split(value, left, right);
+
+        node.set(new Node<>(value, priority, left.get(), right.get()));
+        return true;
       }
-
-      AtomicReference<Node<T>> left = new AtomicReference<>();
-      AtomicReference<Node<T>> right = new AtomicReference<>();
-
-      this.split(value, left, right);
-
-      node.set(merge(merge(left.get(), new Node<>(value, priority)), right.get()));
-      return true;
     }
 
     public static <T extends Comparable<T>> boolean delete(AtomicReference<Node<T>> node, T value) {
@@ -135,7 +160,7 @@ public class Treap<T extends Comparable<T>> {
       } else if (Objects.nonNull(node.get().getLeft())) {
         AtomicReference<Node<T>> left = new AtomicReference<>(node.get().getLeft());
         boolean result = delete(left, value);
-        node.set(new Node<T>(node.get().getValue(), node.get().getPriority(), left.get(), node.get().getRight()));
+        node.set(new Node<>(node.get().getValue(), node.get().getPriority(), left.get(), node.get().getRight()));
         return result;
       }
 
@@ -168,7 +193,7 @@ public class Treap<T extends Comparable<T>> {
           leftRef.set(new Node<>(this.getValue(), this.getPriority(), this.getLeft(), leftRight.get()));
           rightRef.set(right.get());
         }
-      } else {
+      } else if (value.compareTo(this.getValue()) < 0) {
         if (Objects.isNull(this.getLeft())) {
           rightRef.set(this);
         } else {
@@ -179,6 +204,9 @@ public class Treap<T extends Comparable<T>> {
           leftRef.set(left.get());
           rightRef.set(new Node<>(this.getValue(), this.getPriority(), rightLeft.get(), this.getRight()));
         }
+      } else {
+        leftRef.set(this.getLeft());
+        rightRef.set(this.getRight());
       }
     }
 

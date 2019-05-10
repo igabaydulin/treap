@@ -10,7 +10,8 @@ public class TreapArrayTest {
   @Test
   @DisplayName("Check ordering and non-duplication")
   public void check_ordering_and_non_duplication() {
-    TreapSet<Integer> treapSet = new TreapSet<>();
+    TreapSet<Integer> treapSet = new TreapSet<>(10);
+
     treapSet.add(3);
     treapSet.add(1);
     treapSet.add(4);
@@ -20,6 +21,7 @@ public class TreapArrayTest {
     treapSet.add(2);
     treapSet.add(6);
     treapSet.add(5);
+
     Assertions.assertArrayEquals(new Integer[] {1, 2, 3, 4, 5, 6, 9}, treapSet.toArray(new Integer[] {}));
   }
 }
