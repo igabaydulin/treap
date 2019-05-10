@@ -30,6 +30,7 @@ public class TreapSet<T extends Comparable<T>> implements Set<T> {
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public boolean contains(Object o) {
     try {
       return treap.contains((T) o);
@@ -39,6 +40,7 @@ public class TreapSet<T extends Comparable<T>> implements Set<T> {
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public Iterator<T> iterator() {
     return new Iterator<T>() {
 
@@ -63,6 +65,7 @@ public class TreapSet<T extends Comparable<T>> implements Set<T> {
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public <T1> T1[] toArray(T1[] a) {
     Node<T> root = treap.getRoot();
     int index = 0;
@@ -95,6 +98,7 @@ public class TreapSet<T extends Comparable<T>> implements Set<T> {
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public boolean remove(Object o) {
     return treap.delete((T) o);
   }
@@ -113,6 +117,7 @@ public class TreapSet<T extends Comparable<T>> implements Set<T> {
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public boolean retainAll(Collection<?> c) {
     int currentSize = size();
     treap = new Treap<>();
@@ -122,6 +127,7 @@ public class TreapSet<T extends Comparable<T>> implements Set<T> {
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public boolean removeAll(Collection<?> c) {
     int currentSize = size();
     c.forEach(it -> treap.delete((T) it));
