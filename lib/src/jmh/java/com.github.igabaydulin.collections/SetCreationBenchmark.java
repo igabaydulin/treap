@@ -8,7 +8,7 @@ import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.infra.Blackhole;
 
-public class SetComparisonBenchmark {
+public class SetCreationBenchmark {
 
   @org.openjdk.jmh.annotations.State(Scope.Benchmark)
   public static class State {
@@ -30,16 +30,36 @@ public class SetComparisonBenchmark {
   }
 
   @Benchmark
-  public void treap_set(State state, Blackhole blackhole) {
+  public void create_treap_set_by_add(State state, Blackhole blackhole) {
     TreapSet<Integer> set = new TreapSet<>();
     state.getValues().forEach(set::add);
     blackhole.consume(set);
   }
 
   @Benchmark
-  public void tree_set(State state, Blackhole blackhole) {
+  public void create_tree_set_by_add(State state, Blackhole blackhole) {
     TreeSet<Integer> set = new TreeSet<>();
     state.getValues().forEach(set::add);
+    blackhole.consume(set);
+  }
+
+  @Benchmark
+  public void create_treap_set_by_add_all(State state, Blackhole blackhole) {
+    TreapSet<Integer> set = new TreapSet<>();
+    set.addAll(state.getValues());
+    blackhole.consume(set);
+  }
+
+  @Benchmark
+  public void create_tree_set_by_add_all(State state, Blackhole blackhole) {
+    TreeSet<Integer> set = new TreeSet<>();
+    set.addAll(state.getValues());
+    blackhole.consume(set);
+  }
+
+  @Benchmark
+  public void create_tree_set_by_add_constructor(State state, Blackhole blackhole) {
+    TreeSet<Integer> set = new TreeSet<>(state.getValues());
     blackhole.consume(set);
   }
 }
