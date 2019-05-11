@@ -11,7 +11,7 @@ import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.infra.Blackhole;
 
-public class SetCreationBenchmark {
+public class SetAddBenchmark {
 
   private static final Random random = new Random();
 
@@ -64,14 +64,14 @@ public class SetCreationBenchmark {
   }
 
   @Benchmark
-  public void create_treap_set_by_add(TreapState state, Blackhole blackhole) {
+  public void treap_add(TreapState state, Blackhole blackhole) {
     Set<Integer> set = state.getSet();
     set.add(state.getValue());
     blackhole.consume(set);
   }
 
   @Benchmark
-  public void create_tree_set_by_add(TreeState state, Blackhole blackhole) {
+  public void tree_add(TreeState state, Blackhole blackhole) {
     Set<Integer> set = state.getSet();
     set.add(state.getValue());
     blackhole.consume(set);
