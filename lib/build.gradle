@@ -17,8 +17,4 @@ dependencies {
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.3.1'
 }
 
-jmh {
-    warmupIterations = 1
-    iterations = 1
-    fork = 1
-}
+apply from: 'jmh.gradle'
