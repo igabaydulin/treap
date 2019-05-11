@@ -1,65 +1,79 @@
 package com.github.igabaydulin.collections;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
+import java.util.Set;
 import java.util.TreeSet;
 import org.openjdk.jmh.annotations.Benchmark;
+import org.openjdk.jmh.annotations.Level;
+import org.openjdk.jmh.annotations.Param;
 import org.openjdk.jmh.annotations.Scope;
+import org.openjdk.jmh.annotations.Setup;
+import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.infra.Blackhole;
 
 public class SetCreationBenchmark {
 
-  @org.openjdk.jmh.annotations.State(Scope.Benchmark)
-  public static class State {
+  private static final Random random = new Random();
 
-    private static final Random random = new Random();
-    private static final int VALUES_LIMIT = 100;
+  @State(Scope.Benchmark)
+  public abstract static class SetState {
 
-    private final List<Integer> values = new ArrayList<>();
+    private Set<Integer> set;
+    private @Param({"1", "10", "100", "1000", "10000"}) int size;
+    private int value;
 
-    public State() {
-      for (int i = 0; i < VALUES_LIMIT; ++i) {
-        values.add(random.nextInt(VALUES_LIMIT));
+    public SetState(Set<Integer> set) {
+      this.set = set;
+    }
+
+    @Setup(Level.Invocation)
+    public void setUp() {
+      value = random.nextInt(size);
+      for (int i = 0; i < size; ++i) {
+        if (value != i) {
+          getSet().add(random.nextInt(size));
+        }
       }
     }
 
-    public List<Integer> getValues() {
-      return values;
+    public Set<Integer> getSet() {
+      return set;
+    }
+
+    public int getSize() {
+      return size;
+    }
+
+    public int getValue() {
+      return value;
+    }
+  }
+
+  public static class TreeState extends SetState {
+
+    public TreeState() {
+      super(new TreeSet<>());
+    }
+  }
+
+  public static class TreapState extends SetState {
+
+    public TreapState() {
+      super(new TreapSet<>());
     }
   }
 
   @Benchmark
-  public void create_treap_set_by_add(State state, Blackhole blackhole) {
-    TreapSet<Integer> set = new TreapSet<>();
-    state.getValues().forEach(set::add);
+  public void create_treap_set_by_add(TreapState state, Blackhole blackhole) {
+    Set<Integer> set = state.getSet();
+    set.add(state.getValue());
     blackhole.consume(set);
   }
 
   @Benchmark
-  public void create_tree_set_by_add(State state, Blackhole blackhole) {
-    TreeSet<Integer> set = new TreeSet<>();
-    state.getValues().forEach(set::add);
-    blackhole.consume(set);
-  }
-
-  @Benchmark
-  public void create_treap_set_by_add_all(State state, Blackhole blackhole) {
-    TreapSet<Integer> set = new TreapSet<>();
-    set.addAll(state.getValues());
-    blackhole.consume(set);
-  }
-
-  @Benchmark
-  public void create_tree_set_by_add_all(State state, Blackhole blackhole) {
-    TreeSet<Integer> set = new TreeSet<>();
-    set.addAll(state.getValues());
-    blackhole.consume(set);
-  }
-
-  @Benchmark
-  public void create_tree_set_by_constructor(State state, Blackhole blackhole) {
-    TreeSet<Integer> set = new TreeSet<>(state.getValues());
+  public void create_tree_set_by_add(TreeState state, Blackhole blackhole) {
+    Set<Integer> set = state.getSet();
+    set.add(state.getValue());
     blackhole.consume(set);
   }
 }
