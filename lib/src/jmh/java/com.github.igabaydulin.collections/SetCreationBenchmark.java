@@ -58,7 +58,7 @@ public class SetCreationBenchmark {
   }
 
   @Benchmark
-  public void create_tree_set_by_add_constructor(State state, Blackhole blackhole) {
+  public void create_tree_set_by_constructor(State state, Blackhole blackhole) {
     TreeSet<Integer> set = new TreeSet<>(state.getValues());
     blackhole.consume(set);
   }
