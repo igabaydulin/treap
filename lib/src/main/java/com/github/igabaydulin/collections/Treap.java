@@ -2,7 +2,6 @@ package com.github.igabaydulin.collections;
 
 import java.util.Objects;
 import java.util.Random;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class Treap<T extends Comparable<T>> {
 
@@ -31,7 +30,7 @@ public class Treap<T extends Comparable<T>> {
       return true;
     }
 
-    AtomicReference<Node<T>> nodeRef = new AtomicReference<>();
+    Reference<Node<T>> nodeRef = new Reference<>();
     boolean result = root.add(nodeRef, value, random.nextDouble());
 
     if (result) {
@@ -46,7 +45,7 @@ public class Treap<T extends Comparable<T>> {
       return false;
     }
 
-    AtomicReference<Node<T>> rootReference = new AtomicReference<>(root);
+    Reference<Node<T>> rootReference = new Reference<>(root);
     boolean result = Node.delete(rootReference, value);
 
     root = rootReference.get();
@@ -109,7 +108,7 @@ public class Treap<T extends Comparable<T>> {
       return false;
     }
 
-    public boolean add(AtomicReference<Node<T>> node, T value, double priority) {
+    public boolean add(Reference<Node<T>> node, T value, double priority) {
       if (priority < this.getPriority()) {
         if (this.getValue().compareTo(value) < 0) {
           if (Objects.isNull(this.getRight())) {
@@ -117,7 +116,7 @@ public class Treap<T extends Comparable<T>> {
             return true;
           }
 
-          AtomicReference<Node<T>> right = new AtomicReference<>(this.getRight());
+          Reference<Node<T>> right = new Reference<>(this.getRight());
           boolean isAdded = this.getRight().add(right, value, priority);
           node.set(new Node<>(this.value, this.priority, this.left, right.get()));
           return isAdded;
@@ -127,7 +126,7 @@ public class Treap<T extends Comparable<T>> {
             return true;
           }
 
-          AtomicReference<Node<T>> left = new AtomicReference<>(this.getLeft());
+          Reference<Node<T>> left = new Reference<>(this.getLeft());
           boolean isAdded = this.getLeft().add(left, value, priority);
           node.set(new Node<>(this.value, this.priority, left.get(), this.right));
           return isAdded;
@@ -139,8 +138,8 @@ public class Treap<T extends Comparable<T>> {
           return false;
         }
 
-        AtomicReference<Node<T>> left = new AtomicReference<>();
-        AtomicReference<Node<T>> right = new AtomicReference<>();
+        Reference<Node<T>> left = new Reference<>();
+        Reference<Node<T>> right = new Reference<>();
         split(value, left, right);
 
         node.set(new Node<>(value, priority, left.get(), right.get()));
@@ -148,17 +147,17 @@ public class Treap<T extends Comparable<T>> {
       }
     }
 
-    public static <T extends Comparable<T>> boolean delete(AtomicReference<Node<T>> node, T value) {
+    public static <T extends Comparable<T>> boolean delete(Reference<Node<T>> node, T value) {
       if (Objects.equals(value, node.get().getValue())) {
         node.set(merge(node.get().getLeft(), node.get().getRight()));
         return true;
       } else if (value.compareTo(node.get().getValue()) > 0 && Objects.nonNull(node.get().getRight())) {
-        AtomicReference<Node<T>> right = new AtomicReference<>(node.get().getRight());
+        Reference<Node<T>> right = new Reference<>(node.get().getRight());
         boolean result = delete(right, value);
         node.set(new Node<>(node.get().getValue(), node.get().getPriority(), node.get().getLeft(), right.get()));
         return result;
       } else if (Objects.nonNull(node.get().getLeft())) {
-        AtomicReference<Node<T>> left = new AtomicReference<>(node.get().getLeft());
+        Reference<Node<T>> left = new Reference<>(node.get().getLeft());
         boolean result = delete(left, value);
         node.set(new Node<>(node.get().getValue(), node.get().getPriority(), left.get(), node.get().getRight()));
         return result;
@@ -181,13 +180,13 @@ public class Treap<T extends Comparable<T>> {
       }
     }
 
-    public void split(T value, AtomicReference<Node<T>> leftRef, AtomicReference<Node<T>> rightRef) {
+    public void split(T value, Reference<Node<T>> leftRef, Reference<Node<T>> rightRef) {
       if (value.compareTo(this.getValue()) > 0) {
         if (Objects.isNull(this.getRight())) {
           leftRef.set(this);
         } else {
-          AtomicReference<Node<T>> leftRight = new AtomicReference<>();
-          AtomicReference<Node<T>> right = new AtomicReference<>();
+          Reference<Node<T>> leftRight = new Reference<>();
+          Reference<Node<T>> right = new Reference<>();
 
           this.getRight().split(value, leftRight, right);
           leftRef.set(new Node<>(this.getValue(), this.getPriority(), this.getLeft(), leftRight.get()));
@@ -197,8 +196,8 @@ public class Treap<T extends Comparable<T>> {
         if (Objects.isNull(this.getLeft())) {
           rightRef.set(this);
         } else {
-          AtomicReference<Node<T>> left = new AtomicReference<>();
-          AtomicReference<Node<T>> rightLeft = new AtomicReference<>();
+          Reference<Node<T>> left = new Reference<>();
+          Reference<Node<T>> rightLeft = new Reference<>();
 
           this.getLeft().split(value, left, rightLeft);
           leftRef.set(left.get());
@@ -228,6 +227,25 @@ public class Treap<T extends Comparable<T>> {
 
     public int getSize() {
       return size;
+    }
+  }
+
+  private static class Reference<T> {
+
+    private T value;
+
+    public Reference() {}
+
+    public Reference(T value) {
+      this.value = value;
+    }
+
+    public T get() {
+      return value;
+    }
+
+    public void set(T value) {
+      this.value = value;
     }
   }
 }
