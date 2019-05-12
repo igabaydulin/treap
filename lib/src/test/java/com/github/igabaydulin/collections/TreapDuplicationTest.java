@@ -15,4 +15,15 @@ public class TreapDuplicationTest {
     Assertions.assertFalse(treapSet.add(4));
     Assertions.assertEquals(1, treapSet.size());
   }
+
+  @Test
+  @DisplayName("Check if there is duplication for multiple values treap")
+  public void check_duplications_for_multiple_values_treap() {
+    TreapSet<Integer> treapSet = new TreapSet<>(10);
+    treapSet.getTreap().add(3, 0.5);
+    treapSet.getTreap().add(2, 0.4);
+    Assertions.assertTrue(treapSet.getTreap().add(1, 0.3));
+    Assertions.assertFalse(treapSet.getTreap().add(1, 0.45));
+    Assertions.assertEquals(3, treapSet.size());
+  }
 }

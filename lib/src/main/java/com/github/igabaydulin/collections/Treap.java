@@ -12,8 +12,14 @@ public class Treap<T extends Comparable<T>> {
     this.random = new Random();
   }
 
+  // For testing purpose only
   public Treap(long seed) {
     this.random = new Random(seed);
+  }
+
+  public Treap(Node<T> root) {
+    this();
+    this.root = root;
   }
 
   public boolean contains(T value) {
@@ -57,12 +63,46 @@ public class Treap<T extends Comparable<T>> {
     return result;
   }
 
+  public boolean split(T value, Reference<Treap<T>> left, Reference<Treap<T>> right) {
+    if (Objects.isNull(root)) {
+      return false;
+    }
+
+    Reference<Node<T>> leftNode = new Reference<>();
+    Reference<Node<T>> rightNode = new Reference<>();
+
+    boolean contains = root.split(value, leftNode, rightNode);
+
+    left.set(new Treap<>(leftNode.get()));
+    right.set(new Treap<>(rightNode.get()));
+
+    return contains;
+  }
+
+  public static <T extends Comparable<T>> Treap<T> merge(Treap<T> left, Treap<T> right) {
+    if (Objects.isNull(left)) {
+      return right;
+    } else if (Objects.isNull(right)) {
+      return left;
+    }
+
+    return new Treap<>(Node.merge(left.getRoot(), right.getRoot()));
+  }
+
   public int size() {
     if (Objects.isNull(root)) {
       return 0;
     }
 
     return root.getSize();
+  }
+
+  public int height() {
+    if (Objects.isNull(root)) {
+      return 0;
+    }
+
+    return root.getHeight();
   }
 
   public Node<T> getRoot() {
@@ -74,6 +114,7 @@ public class Treap<T extends Comparable<T>> {
     private T value;
     private double priority;
     private int size;
+    private int height;
 
     private Node<T> left;
     private Node<T> right;
@@ -82,6 +123,7 @@ public class Treap<T extends Comparable<T>> {
       this.value = value;
       this.priority = priority;
       this.size = 1;
+      this.height = 1;
     }
 
     public Node(T value, double priority, Node<T> left, Node<T> right) {
@@ -89,12 +131,15 @@ public class Treap<T extends Comparable<T>> {
       this.left = left;
       this.right = right;
 
-      if (Objects.nonNull(left)) {
+      if (Objects.nonNull(left) && Objects.nonNull(right)) {
+        this.size += left.getSize() + right.getSize();
+        this.height += Math.max(left.getHeight(), right.getHeight());
+      } else if (Objects.nonNull(left)) {
         this.size += left.getSize();
-      }
-
-      if (Objects.nonNull(right)) {
+        this.height += left.getHeight();
+      } else if (Objects.nonNull(right)) {
         this.size += right.getSize();
+        this.height += right.getHeight();
       }
     }
 
@@ -144,10 +189,10 @@ public class Treap<T extends Comparable<T>> {
 
         Reference<Node<T>> left = new Reference<>();
         Reference<Node<T>> right = new Reference<>();
-        split(value, left, right);
+        boolean contains = split(value, left, right, false);
 
         node.set(new Node<>(value, priority, left.get(), right.get()));
-        return true;
+        return !contains;
       }
     }
 
@@ -184,33 +229,42 @@ public class Treap<T extends Comparable<T>> {
       }
     }
 
-    public void split(T value, Reference<Node<T>> leftRef, Reference<Node<T>> rightRef) {
-      if (value.compareTo(this.getValue()) > 0) {
+    public boolean split(T value, Reference<Node<T>> leftRef, Reference<Node<T>> rightRef, boolean keepValue) {
+      if (value.compareTo(this.getValue()) > 0 || (keepValue && value.compareTo(this.getValue()) == 0)) {
         if (Objects.isNull(this.getRight())) {
           leftRef.set(this);
+          return false;
         } else {
           Reference<Node<T>> leftRight = new Reference<>();
           Reference<Node<T>> right = new Reference<>();
 
-          this.getRight().split(value, leftRight, right);
+          boolean result = this.getRight().split(value, leftRight, right, keepValue);
           leftRef.set(new Node<>(this.getValue(), this.getPriority(), this.getLeft(), leftRight.get()));
           rightRef.set(right.get());
+          return result;
         }
       } else if (value.compareTo(this.getValue()) < 0) {
         if (Objects.isNull(this.getLeft())) {
           rightRef.set(this);
+          return false;
         } else {
           Reference<Node<T>> left = new Reference<>();
           Reference<Node<T>> rightLeft = new Reference<>();
 
-          this.getLeft().split(value, left, rightLeft);
+          boolean result = this.getLeft().split(value, left, rightLeft, keepValue);
           leftRef.set(left.get());
           rightRef.set(new Node<>(this.getValue(), this.getPriority(), rightLeft.get(), this.getRight()));
+          return result;
         }
       } else {
         leftRef.set(this.getLeft());
         rightRef.set(this.getRight());
+        return true;
       }
+    }
+
+    public boolean split(T value, Reference<Node<T>> leftRef, Reference<Node<T>> rightRef) {
+      return split(value, leftRef, rightRef, true);
     }
 
     public T getValue() {
@@ -232,9 +286,13 @@ public class Treap<T extends Comparable<T>> {
     public int getSize() {
       return size;
     }
+
+    public int getHeight() {
+      return height;
+    }
   }
 
-  private static class Reference<T> {
+  public static class Reference<T> {
 
     private T value;
 
