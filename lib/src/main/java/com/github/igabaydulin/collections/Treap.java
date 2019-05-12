@@ -36,8 +36,8 @@ public class Treap<T extends Comparable<T>> {
       return true;
     }
 
-    Reference<Node<T>> nodeRef = new Reference<>();
-    boolean result = root.add(nodeRef, value, priority);
+    Reference<Node<T>> nodeRef = new Reference<>(root);
+    boolean result = Node.add(nodeRef, value, priority);
 
     if (result) {
       root = nodeRef.get();
