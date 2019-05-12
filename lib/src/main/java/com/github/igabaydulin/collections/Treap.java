@@ -157,42 +157,63 @@ public class Treap<T extends Comparable<T>> {
       return false;
     }
 
-    public boolean add(Reference<Node<T>> node, T value, double priority) {
-      if (priority < this.getPriority()) {
-        if (this.getValue().compareTo(value) < 0) {
-          if (Objects.isNull(this.getRight())) {
-            node.set(new Node<>(this.value, this.priority, this.left, new Node<>(value, priority)));
-            return true;
-          }
+    private static <T extends Comparable<T>> void rotateRight(Reference<Node<T>> nodeRef) {
+      Node<T> currentRoot = nodeRef.get();
+      Node<T> newRight =
+          new Node<>(
+              currentRoot.getValue(),
+              currentRoot.getPriority(),
+              currentRoot.getLeft().getRight(),
+              currentRoot.getRight());
+      Node<T> newRoot =
+          new Node<>(
+              currentRoot.getLeft().getValue(),
+              currentRoot.getLeft().getPriority(),
+              currentRoot.getLeft().getLeft(),
+              newRight);
+      nodeRef.set(newRoot);
+    }
 
-          Reference<Node<T>> right = new Reference<>(this.getRight());
-          boolean isAdded = this.getRight().add(right, value, priority);
-          node.set(new Node<>(this.value, this.priority, this.left, right.get()));
-          return isAdded;
-        } else if (this.getValue().compareTo(value) > 0) {
-          if (Objects.isNull(this.getLeft())) {
-            node.set(new Node<>(this.value, this.priority, new Node<>(value, priority), this.right));
-            return true;
-          }
+    private static <T extends Comparable<T>> void rotateLeft(Reference<Node<T>> nodeRef) {
+      Node<T> currentRoot = nodeRef.get();
+      Node<T> newLeft =
+          new Node<>(
+              currentRoot.getValue(),
+              currentRoot.getPriority(),
+              currentRoot.getLeft(),
+              currentRoot.getRight().getLeft());
+      Node<T> newRoot =
+          new Node<>(
+              currentRoot.getRight().getValue(),
+              currentRoot.getRight().getPriority(),
+              newLeft,
+              currentRoot.getRight().getRight());
+      nodeRef.set(newRoot);
+    }
 
-          Reference<Node<T>> left = new Reference<>(this.getLeft());
-          boolean isAdded = this.getLeft().add(left, value, priority);
-          node.set(new Node<>(this.value, this.priority, left.get(), this.right));
-          return isAdded;
-        } else {
-          return false;
+    public static <T extends Comparable<T>> boolean add(Reference<Node<T>> nodeRef, T value, double priority) {
+      Node<T> node = nodeRef.get();
+      if (Objects.isNull(node)) {
+        nodeRef.set(new Node<>(value, priority));
+        return true;
+      } else if (node.getValue().compareTo(value) > 0) {
+        Reference<Node<T>> leftRef = new Reference<>(node.getLeft());
+        boolean contains = add(leftRef, value, priority);
+        nodeRef.set(new Node<>(node.getValue(), node.getPriority(), leftRef.get(), node.getRight()));
+        if (leftRef.get().getPriority() > node.getPriority()) {
+          rotateRight(nodeRef);
         }
+        return contains;
+      } else if (node.getValue().compareTo(value) < 0) {
+        Reference<Node<T>> rightRef = new Reference<>(node.getRight());
+        boolean contains = add(rightRef, value, priority);
+        nodeRef.set(new Node<>(node.getValue(), node.getPriority(), node.getLeft(), rightRef.get()));
+        if (rightRef.get().getPriority() > node.getPriority()) {
+          rotateLeft(nodeRef);
+        }
+        return contains;
       } else {
-        if (this.getValue().compareTo(value) == 0) {
-          return false;
-        }
-
-        Reference<Node<T>> left = new Reference<>();
-        Reference<Node<T>> right = new Reference<>();
-        boolean contains = split(value, left, right, false);
-
-        node.set(new Node<>(value, priority, left.get(), right.get()));
-        return !contains;
+        return false;
       }
     }
 
