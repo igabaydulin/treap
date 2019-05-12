@@ -31,11 +31,6 @@ public class Treap<T extends Comparable<T>> {
   }
 
   public boolean add(T value, double priority) {
-    if (Objects.isNull(root)) {
-      root = new Node<>(value, priority);
-      return true;
-    }
-
     Reference<Node<T>> nodeRef = new Reference<>(root);
     boolean result = Node.add(nodeRef, value, priority);
 
