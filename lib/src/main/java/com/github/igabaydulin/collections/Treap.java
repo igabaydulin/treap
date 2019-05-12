@@ -125,17 +125,7 @@ public class Treap<T extends Comparable<T>> {
       this(value, priority);
       this.left = left;
       this.right = right;
-
-      if (Objects.nonNull(left) && Objects.nonNull(right)) {
-        this.size += left.getSize() + right.getSize();
-        this.height += Math.max(left.getHeight(), right.getHeight());
-      } else if (Objects.nonNull(left)) {
-        this.size += left.getSize();
-        this.height += left.getHeight();
-      } else if (Objects.nonNull(right)) {
-        this.size += right.getSize();
-        this.height += right.getHeight();
-      }
+      updateInfo();
     }
 
     public boolean contains(T value) {
@@ -194,7 +184,7 @@ public class Treap<T extends Comparable<T>> {
       } else if (node.getValue().compareTo(value) > 0) {
         Reference<Node<T>> leftRef = new Reference<>(node.getLeft());
         boolean contains = add(leftRef, value, priority);
-        nodeRef.set(new Node<>(node.getValue(), node.getPriority(), leftRef.get(), node.getRight()));
+        node.setLeft(leftRef.get());
         if (leftRef.get().getPriority() > node.getPriority()) {
           rotateRight(nodeRef);
         }
@@ -202,7 +192,7 @@ public class Treap<T extends Comparable<T>> {
       } else if (node.getValue().compareTo(value) < 0) {
         Reference<Node<T>> rightRef = new Reference<>(node.getRight());
         boolean contains = add(rightRef, value, priority);
-        nodeRef.set(new Node<>(node.getValue(), node.getPriority(), node.getLeft(), rightRef.get()));
+        node.setRight(rightRef.get());
         if (rightRef.get().getPriority() > node.getPriority()) {
           rotateLeft(nodeRef);
         }
@@ -297,6 +287,30 @@ public class Treap<T extends Comparable<T>> {
 
     public Node<T> getRight() {
       return right;
+    }
+
+    private void updateInfo() {
+      if (Objects.nonNull(left) && Objects.nonNull(right)) {
+        this.size = left.getSize() + right.getSize() + 1;
+        this.height = Math.max(left.getHeight(), right.getHeight()) + 1;
+      } else if (Objects.nonNull(left)) {
+        this.size = left.getSize() + 1;
+        this.height = left.getHeight() + 1;
+      } else if (Objects.nonNull(right)) {
+        this.size = right.getSize() + 1;
+        this.height = right.getHeight() + 1;
+      }
+    }
+
+    /** Called when rotations are needed */
+    public void setLeft(Node<T> left) {
+      this.left = left;
+      updateInfo();
+    }
+
+    public void setRight(Node<T> right) {
+      this.right = right;
+      updateInfo();
     }
 
     public int getSize() {
