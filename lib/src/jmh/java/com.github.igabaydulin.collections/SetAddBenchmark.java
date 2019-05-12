@@ -16,7 +16,7 @@ public class SetAddBenchmark {
 
   private static final Random random = new Random();
 
-  @State(Scope.Benchmark)
+  @State(Scope.Thread)
   public abstract static class SetState {
 
     private Set<Integer> set;
@@ -37,9 +37,9 @@ public class SetAddBenchmark {
       }
     }
 
-    @TearDown
+    @TearDown(Level.Invocation)
     public void tearDown() {
-      getSet().clear();
+      set.clear();
     }
 
     public Set<Integer> getSet() {

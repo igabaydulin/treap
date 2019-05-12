@@ -9,7 +9,7 @@ public class Treap<T extends Comparable<T>> {
   private Node<T> root;
 
   public Treap() {
-    this(0);
+    this.random = new Random();
   }
 
   public Treap(long seed) {
