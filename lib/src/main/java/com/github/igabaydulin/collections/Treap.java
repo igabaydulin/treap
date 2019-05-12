@@ -24,20 +24,24 @@ public class Treap<T extends Comparable<T>> {
     return root.contains(value);
   }
 
-  public boolean add(T value) {
+  public boolean add(T value, double priority) {
     if (Objects.isNull(root)) {
-      root = new Node<>(value, random.nextDouble());
+      root = new Node<>(value, priority);
       return true;
     }
 
     Reference<Node<T>> nodeRef = new Reference<>();
-    boolean result = root.add(nodeRef, value, random.nextDouble());
+    boolean result = root.add(nodeRef, value, priority);
 
     if (result) {
       root = nodeRef.get();
     }
 
     return result;
+  }
+
+  public boolean add(T value) {
+    return add(value, random.nextDouble());
   }
 
   public boolean delete(T value) {

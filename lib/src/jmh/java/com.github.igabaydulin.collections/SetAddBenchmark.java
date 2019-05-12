@@ -19,13 +19,8 @@ public class SetAddBenchmark {
   @State(Scope.Thread)
   public abstract static class SetState {
 
-    private Set<Integer> set;
     private @Param({"1", "10", "100", "1000", "10000"}) int size;
     private int value;
-
-    public SetState(Set<Integer> set) {
-      this.set = set;
-    }
 
     @Setup(Level.Invocation)
     public void setUp() {
@@ -39,11 +34,7 @@ public class SetAddBenchmark {
 
     @TearDown(Level.Invocation)
     public void tearDown() {
-      set.clear();
-    }
-
-    public Set<Integer> getSet() {
-      return set;
+      getSet().clear();
     }
 
     public int getSize() {
@@ -53,25 +44,45 @@ public class SetAddBenchmark {
     public int getValue() {
       return value;
     }
+
+    public abstract Set<Integer> getSet();
   }
 
   public static class TreeState extends SetState {
 
-    public TreeState() {
-      super(new TreeSet<>());
+    private TreeSet<Integer> set = new TreeSet<>();
+
+    @Override
+    public TreeSet<Integer> getSet() {
+      return set;
     }
   }
 
   public static class TreapState extends SetState {
 
-    public TreapState() {
-      super(new TreapSet<>());
+    private double priority = random.nextDouble();
+    private TreapSet<Integer> set = new TreapSet<>();
+
+    @Override
+    public TreapSet<Integer> getSet() {
+      return set;
+    }
+
+    public double getPriority() {
+      return priority;
     }
   }
 
   @Benchmark
+  public void treap_add_with_priority(TreapState state, Blackhole blackhole) {
+    TreapSet<Integer> set = state.getSet();
+    set.getTreap().add(state.getValue(), state.getPriority());
+    blackhole.consume(set);
+  }
+
+  @Benchmark
   public void treap_add(TreapState state, Blackhole blackhole) {
-    Set<Integer> set = state.getSet();
+    TreapSet<Integer> set = state.getSet();
     set.add(state.getValue());
     blackhole.consume(set);
   }
