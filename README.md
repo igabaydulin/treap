@@ -1,6 +1,6 @@
 # Description
 
-Treap is a randomized binary search tree
+**Treap** is a randomized binary search tree
 Each treap's node contains two parameters: key (which is used for binary search) and priority (which is chosen randomly). While
 keys are used as BST operator priorities are used as Heap operator (hence the name treap: tree + heap)
 
