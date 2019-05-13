@@ -1,8 +1,8 @@
 # Treap [![Version](https://img.shields.io/badge/Version-0.1.M1-color.svg)](https://github.com/igabaydulin/treap) [![Version](https://img.shields.io/badge/Java-OpenJDK%2012.0.1-dd0000.svg?logo=java)](https://jdk.java.net/12/) [![Version](https://img.shields.io/badge/Gradle-5.4.1-1ba8cb.svg)](https://docs.gradle.org/5.4.1/release-notes.html)
 
 **Treap** is a randomized binary search tree
-Each treap's node contains two parameters: key (which is used for binary search) and priority (which is chosen randomly). While
-keys are used as BST operator priorities are used as Heap operator (hence the name treap: tree + heap)
+Each treap's node contains two parameters: *key* (which is used for binary search) and *priority* (which is chosen randomly). While
+*keys* are used as BST operator *priorities* are used as Heap operator (hence the name treap: tree + heap)
 
 <p align="center">
   <img src="https://github.com/igabaydulin/treap/blob/master/resources/treap_illustration.svg">
