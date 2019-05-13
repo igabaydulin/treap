@@ -18,8 +18,8 @@ Sources:
 * [Project Hierarchy](#project-hierarchy)
 * [Testing](#testing)
 * [JMH](#jmh)
-** [Configuration](#configuration)
-** [Execution](#execution)
+  * [Configuration](#configuration)
+  * [Execution](#execution)
 
 ## Project Hierarchy
 ```bash
