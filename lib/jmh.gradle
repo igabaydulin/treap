@@ -1,6 +1,6 @@
 jmh {
-    warmupForks = 2
+    warmupForks = 1
     warmupIterations = 4
     iterations = 4
-    fork = 4
+    fork = 2
 }
