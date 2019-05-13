@@ -28,11 +28,11 @@ public class TreapSizeTest {
   @DisplayName("Check treap size with multiple elements")
   public void check_treap_size_in_multiples_value_treap_without_duplications() {
     Treap<Integer> treap = new Treap<>();
-    treap.add(3);
-    treap.add(1);
-    treap.add(4);
-    treap.add(5);
-    treap.add(9);
+    treap.add(3, 0.1);
+    treap.add(1, 0.2);
+    treap.add(4, 0.5);
+    treap.add(5, 0.4);
+    treap.add(9, 0.3);
     Assertions.assertEquals(5, treap.size());
   }
 
@@ -53,16 +53,16 @@ public class TreapSizeTest {
   public void check_treap_size_after_split() {
     Treap<Integer> treap = new Treap<>();
 
-    treap.add(3);
-    treap.add(1);
-    treap.add(4);
-    treap.add(2);
-    treap.add(6);
-    treap.add(5);
-    treap.add(8);
-    treap.add(0);
-    treap.add(9);
-    treap.add(7);
+    treap.add(3, 0.3);
+    treap.add(1, 0.1);
+    treap.add(4, 0.4);
+    treap.add(2, 0.2);
+    treap.add(6, 0.6);
+    treap.add(5, 0.5);
+    treap.add(8, 0.8);
+    treap.add(0, 0.0);
+    treap.add(9, 0.9);
+    treap.add(7, 0.7);
 
     Reference<Treap<Integer>> left = new Reference<>();
     Reference<Treap<Integer>> right = new Reference<>();

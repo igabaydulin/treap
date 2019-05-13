@@ -31,14 +31,16 @@ public class Treap<T extends Comparable<T>> {
   }
 
   public boolean add(T value, double priority) {
-    Reference<Node<T>> nodeRef = new Reference<>(root);
-    boolean result = Node.add(nodeRef, value, priority);
+    int sizeBeforeInsert = size();
 
-    if (result) {
-      root = nodeRef.get();
+    if (Objects.isNull(root)) {
+      root = new Node<>(value, priority);
+      return true;
     }
 
-    return result;
+    root = root.add(value, priority);
+
+    return sizeBeforeInsert < size();
   }
 
   public boolean add(T value) {
@@ -114,6 +116,8 @@ public class Treap<T extends Comparable<T>> {
     private Node<T> left;
     private Node<T> right;
 
+    private Node<T> parent;
+
     public Node(T value, double priority) {
       this.value = value;
       this.priority = priority;
@@ -125,6 +129,15 @@ public class Treap<T extends Comparable<T>> {
       this(value, priority);
       this.left = left;
       this.right = right;
+
+      if (Objects.nonNull(left)) {
+        left.setParent(this);
+      }
+
+      if (Objects.nonNull(right)) {
+        right.setParent(this);
+      }
+
       updateInfo();
     }
 
@@ -142,64 +155,63 @@ public class Treap<T extends Comparable<T>> {
       return false;
     }
 
-    private static <T extends Comparable<T>> void rotateRight(Reference<Node<T>> nodeRef) {
-      Node<T> currentRoot = nodeRef.get();
-      Node<T> newRight =
-          new Node<>(
-              currentRoot.getValue(),
-              currentRoot.getPriority(),
-              currentRoot.getLeft().getRight(),
-              currentRoot.getRight());
-      Node<T> newRoot =
-          new Node<>(
-              currentRoot.getLeft().getValue(),
-              currentRoot.getLeft().getPriority(),
-              currentRoot.getLeft().getLeft(),
-              newRight);
-      nodeRef.set(newRoot);
-    }
+    public Node<T> add(T value, double priority) {
+      Node<T> node = this;
 
-    private static <T extends Comparable<T>> void rotateLeft(Reference<Node<T>> nodeRef) {
-      Node<T> currentRoot = nodeRef.get();
-      Node<T> newLeft =
-          new Node<>(
-              currentRoot.getValue(),
-              currentRoot.getPriority(),
-              currentRoot.getLeft(),
-              currentRoot.getRight().getLeft());
-      Node<T> newRoot =
-          new Node<>(
-              currentRoot.getRight().getValue(),
-              currentRoot.getRight().getPriority(),
-              newLeft,
-              currentRoot.getRight().getRight());
-      nodeRef.set(newRoot);
-    }
-
-    public static <T extends Comparable<T>> boolean add(Reference<Node<T>> nodeRef, T value, double priority) {
-      Node<T> node = nodeRef.get();
-      if (Objects.isNull(node)) {
-        nodeRef.set(new Node<>(value, priority));
-        return true;
-      } else if (node.getValue().compareTo(value) > 0) {
-        Reference<Node<T>> leftRef = new Reference<>(node.getLeft());
-        boolean contains = add(leftRef, value, priority);
-        node.setLeft(leftRef.get());
-        if (leftRef.get().getPriority() > node.getPriority()) {
-          rotateRight(nodeRef);
+      while (true) {
+        if (node.getValue().compareTo(value) == 0) {
+          return this;
+        } else {
+          if (node.getValue().compareTo(value) > 0) {
+            if (Objects.isNull(node.getLeft())) {
+              Node<T> left = new Node<>(value, priority);
+              node.setLeft(left);
+              node = left;
+              break;
+            } else {
+              node = node.getLeft();
+            }
+          } else {
+            if (Objects.isNull(node.getRight())) {
+              Node<T> right = new Node<>(value, priority);
+              node.setRight(right);
+              node = right;
+              break;
+            } else {
+              node = node.getRight();
+            }
+          }
         }
-        return contains;
-      } else if (node.getValue().compareTo(value) < 0) {
-        Reference<Node<T>> rightRef = new Reference<>(node.getRight());
-        boolean contains = add(rightRef, value, priority);
-        node.setRight(rightRef.get());
-        if (rightRef.get().getPriority() > node.getPriority()) {
-          rotateLeft(nodeRef);
-        }
-        return contains;
-      } else {
-        return false;
       }
+
+      while (Objects.nonNull(node.getParent())) {
+        Node<T> parent = node.getParent();
+
+        if (node.getPriority() > parent.getPriority()) {
+          node.setParent(parent.getParent());
+          if (node.getValue().compareTo(parent.getValue()) < 0) {
+            parent.setLeft(node.getRight());
+            node.setRight(parent);
+          } else {
+            parent.setRight(node.getLeft());
+            node.setLeft(parent);
+          }
+
+          if (Objects.nonNull(node.getParent())) {
+            if (node.getParent().getValue().compareTo(node.getValue()) > 0) {
+              node.getParent().setLeft(node);
+            } else {
+              node.getParent().setRight(node);
+            }
+          }
+        } else {
+          node.updateInfo();
+          node = parent;
+        }
+      }
+
+      node.updateInfo();
+      return node;
     }
 
     public static <T extends Comparable<T>> boolean delete(Reference<Node<T>> node, T value) {
@@ -299,18 +311,36 @@ public class Treap<T extends Comparable<T>> {
       } else if (Objects.nonNull(right)) {
         this.size = right.getSize() + 1;
         this.height = right.getHeight() + 1;
+      } else {
+        this.size = 1;
+        this.height = 1;
       }
     }
 
     /** Called when rotations are needed */
     public void setLeft(Node<T> left) {
       this.left = left;
+      if (Objects.nonNull(left)) {
+        left.setParent(this);
+      }
       updateInfo();
     }
 
     public void setRight(Node<T> right) {
       this.right = right;
+      if (Objects.nonNull(right)) {
+        right.setParent(this);
+      }
+
       updateInfo();
+    }
+
+    public Node<T> getParent() {
+      return parent;
+    }
+
+    public void setParent(Node<T> parent) {
+      this.parent = parent;
     }
 
     public int getSize() {
