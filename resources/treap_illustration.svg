@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="199" height="244" version="1.1" xmlns="http://www.w3.org/2000/svg">
+ <defs>
+  <marker orient="auto" refY="0.0" refX="0.0"
+          id="Arrow2Mend" style="overflow:visible">
+   <path style="stroke-width:0.62500000;stroke-linejoin:round;"
+         d="M 8.7185878,4.0337352 L -2.2072895,0.016013256 L 8.7185884,-4.0017078 C 6.9730900,-1.6296469 6.9831476,1.6157441 8.7185878,4.0337352 z"
+         transform="scale(0.6) rotate(180) translate(0,0)"/>
+  </marker>
+ </defs>
+ <g style="stroke:#000;stroke-width:1.5;marker-end:url(#Arrow2Mend)">
+  <!--
+    # Perl to generate lines ending at edge of circles.
+    use warnings; use strict;
+    use Math::Round;
+    my $rad = 30.5;
+    foreach ("122 32 77 122",
+             "122 32 167 122",
+             "77 122 32 212",
+             "77 122 122 212")
+    {
+        my ($x1, $y1, $x2, $y2) = split ' ';
+        my $ang = atan2($y1 - $y2, $x1 - $x2);
+        my $ox = $rad * cos($ang);
+        my $oy = $rad * sin($ang);
+        my $end = nearest(0.01, $x2 + $ox) . "," . nearest(0.01, $y2 + $oy);
+        print "<path d='M$x1,$y1 L$end'/>\n";
+    }
+  -->
+  <path d='M122,32 L90.64,94.72'/>
+  <path d='M122,32 L153.36,94.72'/>
+  <path d='M77,122 L45.64,184.72'/>
+  <path d='M77,122 L108.36,184.72'/>
+ </g>
+ <g font-size="18px" font-family="Bitstream Vera Sans" text-align="center" text-anchor="middle" stroke-width="1">
+  <g transform="translate(122, 32)">
+   <circle stroke="#000" fill="#fff" cx="0" cy="0" r="30"/>
+   <text fill="#000" x="0" y="-7">9</text>
+   <text fill="#000" x="0" y="16">h</text>
+  </g>
+  <g transform="translate(77, 122)">
+   <circle stroke="#000" fill="#fff" cx="0" cy="0" r="30"/>
+   <text fill="#000" x="0" y="-7">4</text>
+   <text fill="#000" x="0" y="16">c</text>
+  </g>
+  <g transform="translate(167, 122)">
+   <circle stroke="#000" fill="#fff" cx="0" cy="0" r="30"/>
+   <text fill="#000" x="0" y="-7">7</text>
+   <text fill="#000" x="0" y="16">j</text>
+  </g>
+  <g transform="translate(32, 212)">
+   <circle stroke="#000" fill="#fff" cx="0" cy="0" r="30"/>
+   <text fill="#000" x="0" y="-7">2</text>
+   <text fill="#000" x="0" y="16">a</text>
+  </g>
+  <g transform="translate(122, 212)">
+   <circle stroke="#000" fill="#fff" cx="0" cy="0" r="30"/>
+   <text fill="#000" x="0" y="-7">0</text>
+   <text fill="#000" x="0" y="16">e</text>
+  </g>
+ </g>
+</svg>
