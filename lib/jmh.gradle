@@ -3,4 +3,5 @@ jmh {
     warmupIterations = 2
     iterations = 3
     fork = 2
+    jvmArgs = ['-XX:-BackgroundCompilation', '-XX:-TieredCompilation']
 }
