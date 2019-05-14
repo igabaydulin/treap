@@ -155,8 +155,37 @@ public class Treap<T extends Comparable<T>> {
       return false;
     }
 
+    private void updateParentInfo(Node<T> node) {
+      while (Objects.nonNull(node.getParent())) {
+        node.getParent().updateInfo();
+        node = node.getParent();
+      }
+    }
+
     public Node<T> add(T value, double priority) {
       Node<T> node = this;
+
+      while (node.getPriority() > priority) {
+        if (node.getValue().compareTo(value) == 0) {
+          return this;
+        } else if (node.getValue().compareTo(value) > 0) {
+          if (Objects.isNull(node.getLeft())) {
+            node.setLeft(new Node<>(value, priority));
+            updateParentInfo(node);
+            return this;
+          }
+
+          node = node.getLeft();
+        } else {
+          if (Objects.isNull(node.getRight())) {
+            node.setRight(new Node<>(value, priority));
+            updateParentInfo(node);
+            return this;
+          }
+
+          node = node.getRight();
+        }
+      }
 
       while (true) {
         if (node.getValue().compareTo(value) == 0) {
