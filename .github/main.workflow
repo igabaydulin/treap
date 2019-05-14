@@ -1,6 +1,6 @@
-workflow "New workflow" {
-  on = "push"
+workflow "JMH Workflow" {
   resolves = ["JMH"]
+  on = "push"
 }
 
 action "JUnit" {
