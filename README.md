@@ -35,7 +35,9 @@ public static void main(String[] args) {
 }
 ```
 Output:
-`[1, 3, 4]`
+```
+[1, 3, 4]
+```
 It also implements its own interface [Treap](https://github.com/igabaydulin/treap/blob/master/lib/src/main/java/com/github/igabaydulin/collections/Treap.java), which kinda similar to `java.util.Set`:
 ```java
 public static void main(String[] args) {
