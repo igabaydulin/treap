@@ -1,6 +1,6 @@
 package com.github.igabaydulin.collections;
 
-import com.github.igabaydulin.collections.Treap.Node;
+import com.github.igabaydulin.collections.TreapImpl.Node;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Objects;
@@ -9,22 +9,22 @@ import java.util.Stack;
 
 public class TreapSet<T extends Comparable<T>> implements Set<T> {
 
-  private Treap<T> treap;
+  private TreapImpl<T> treap;
 
   public TreapSet() {
-    this(new Treap<>());
+    this(new TreapImpl<>());
   }
 
   public TreapSet(long seed) {
-    this(new Treap<>(seed));
+    this(new TreapImpl<>(seed));
   }
 
-  public TreapSet(Treap<T> treap) {
+  public TreapSet(TreapImpl<T> treap) {
     this.treap = treap;
   }
 
   public TreapSet(Collection<T> collection) {
-    this.treap = new Treap<>();
+    this.treap = new TreapImpl<>();
     addAll(collection);
   }
 
@@ -129,7 +129,7 @@ public class TreapSet<T extends Comparable<T>> implements Set<T> {
   @SuppressWarnings("unchecked")
   public boolean retainAll(Collection<?> c) {
     int currentSize = size();
-    treap = new Treap<>();
+    treap = new TreapImpl<>();
     c.forEach(it -> treap.add((T) it));
 
     return currentSize != size();
@@ -146,7 +146,7 @@ public class TreapSet<T extends Comparable<T>> implements Set<T> {
 
   @Override
   public void clear() {
-    treap = new Treap<>();
+    treap = new TreapImpl<>();
   }
 
   public Treap<T> getTreap() {
