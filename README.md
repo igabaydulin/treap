@@ -31,7 +31,7 @@ public static void main(String[] args) {
     set.add(1);
     set.add(4);
 
-    System.out.println(Arrays.toString(set.toArray()));
+    System.out.println(set);
 }
 ```
 Output:

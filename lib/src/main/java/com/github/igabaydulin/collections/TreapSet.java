@@ -480,4 +480,13 @@ public class TreapSet<T extends Comparable<T>> extends AbstractTreap<T> implemen
   public String toString() {
     return Arrays.toString(toArray());
   }
+
+  public static void main(String[] args) {
+    Set<Integer> set = new TreapSet<>();
+    set.add(3);
+    set.add(1);
+    set.add(4);
+
+    System.out.println(set);
+  }
 }
