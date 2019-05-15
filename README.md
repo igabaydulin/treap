@@ -53,7 +53,6 @@ public static void main(String[] args) {
 
     System.out.println(String.format("left: %s", left));
     System.out.println(String.format("right: %s", right));
-  }
 }
 ```
 Output;
