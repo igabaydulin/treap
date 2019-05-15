@@ -15,11 +15,50 @@ Sources:
 * https://en.wikipedia.org/wiki/Treap
 
 ## Table of Contents
+* [Usage](#usage)
 * [Project Hierarchy](#project-hierarchy)
 * [Testing](#testing)
 * [JMH](#jmh)
   * [Configuration](#configuration)
   * [Execution](#execution)
+
+## Usage
+The main implementation is [TreapSet](https://github.com/igabaydulin/treap/blob/master/lib/src/main/java/com/github/igabaydulin/collections/TreapSet.java), which implements `java.util.Set`:
+```java
+public static void main(String[] args) {
+    Set<Integer> set = new TreapSet<>();
+    set.add(3);
+    set.add(1);
+    set.add(4);
+
+    System.out.println(Arrays.toString(set.toArray()));
+}
+```
+Output:
+`[1, 3, 4]`
+It also implements its own interface [Treap](https://github.com/igabaydulin/treap/blob/master/lib/src/main/java/com/github/igabaydulin/collections/Treap.java), which kinda similar to `java.util.Set`:
+```java
+public static void main(String[] args) {
+    Treap<Integer> treap = new TreapSet<>();
+    treap.add(3);
+    treap.add(1);
+    treap.add(4);
+
+    Reference<Treap<Integer>> left = new Reference<>();
+    Reference<Treap<Integer>> right = new Reference<>();
+
+    treap.split(3, left, right);
+
+    System.out.println(String.format("left: %s", left));
+    System.out.println(String.format("right: %s", right));
+  }
+}
+```
+Output;
+```
+left: [1, 3]
+right: [4]
+```
 
 ## Project Hierarchy
 ```bash
