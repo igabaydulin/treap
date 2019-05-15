@@ -12,14 +12,14 @@ public class TreapSizeTest {
   @Test
   @DisplayName("Check size for empty treap")
   public void check_treap_size_in_empty_treap() {
-    Treap<Integer> treap = new TreapImpl<>();
+    Treap<Integer> treap = new TreapSet<>();
     Assertions.assertEquals(0, treap.size());
   }
 
   @Test
   @DisplayName("Check treap size with 1 element")
   public void check_treap_size_in_single_value_treap() {
-    Treap<Integer> treap = new TreapImpl<>();
+    Treap<Integer> treap = new TreapSet<>();
     treap.add(1);
     Assertions.assertEquals(1, treap.size());
   }
@@ -27,7 +27,7 @@ public class TreapSizeTest {
   @Test
   @DisplayName("Check treap size with multiple elements")
   public void check_treap_size_in_multiples_value_treap_without_duplications() {
-    Treap<Integer> treap = new TreapImpl<>();
+    Treap<Integer> treap = new TreapSet<>();
     treap.add(3, 0.1);
     treap.add(1, 0.2);
     treap.add(4, 0.5);
@@ -39,7 +39,7 @@ public class TreapSizeTest {
   @Test
   @DisplayName("Check treap size with multiple duplicated elements")
   public void check_treap_size_in_multiple_values_treap_with_duplications() {
-    Treap<Integer> treap = new TreapImpl<>();
+    Treap<Integer> treap = new TreapSet<>();
     treap.add(3);
     treap.add(1);
     treap.add(1);
@@ -51,7 +51,7 @@ public class TreapSizeTest {
   @Test
   @DisplayName("Check treaps size after split")
   public void check_treap_size_after_split() {
-    Treap<Integer> treap = new TreapImpl<>();
+    Treap<Integer> treap = new TreapSet<>();
 
     treap.add(3, 0.3);
     treap.add(1, 0.1);

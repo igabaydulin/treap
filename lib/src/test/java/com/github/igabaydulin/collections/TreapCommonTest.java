@@ -16,7 +16,7 @@ class TreapCommonTest {
   @Test
   @DisplayName("Testing single value treap")
   void single_value_treap_test() {
-    Treap<Integer> treap = new TreapImpl<>();
+    Treap<Integer> treap = new TreapSet<>();
     treap.add(4);
     Assertions.assertTrue(treap.contains(4));
     Assertions.assertEquals(1, treap.size());
@@ -25,7 +25,7 @@ class TreapCommonTest {
   @Test
   @DisplayName("Testing double value treap")
   void double_value_treap_test() {
-    Treap<Integer> treap = new TreapImpl<>();
+    Treap<Integer> treap = new TreapSet<>();
     treap.add(4);
     treap.add(5);
     Assertions.assertTrue(treap.contains(4));
@@ -36,7 +36,7 @@ class TreapCommonTest {
   @Test
   @DisplayName("Testing value does not exist in empty treap")
   void empty_treap_test() {
-    Treap<Integer> treap = new TreapImpl<>();
+    Treap<Integer> treap = new TreapSet<>();
     Assertions.assertFalse(treap.contains(2));
     Assertions.assertEquals(0, treap.size());
   }
@@ -44,7 +44,7 @@ class TreapCommonTest {
   @Test
   @DisplayName("Testing deletion from single value treap")
   void deletion_from_single_value_treap_test() {
-    Treap<Integer> treap = new TreapImpl<>();
+    Treap<Integer> treap = new TreapSet<>();
     treap.add(4);
     treap.delete(4);
     Assertions.assertFalse(treap.contains(4));
@@ -54,7 +54,7 @@ class TreapCommonTest {
   @Test
   @DisplayName("Testing deletion from double value treap")
   void deletion_from_double_value_treap_test() {
-    Treap<Integer> treap = new TreapImpl<>();
+    Treap<Integer> treap = new TreapSet<>();
     treap.add(4);
     treap.add(5);
     treap.delete(4);
@@ -66,7 +66,7 @@ class TreapCommonTest {
   @Test
   @DisplayName("Testing full deletion from double value treap")
   void full_deletion_from_double_value_treap_test() {
-    Treap<Integer> treap = new TreapImpl<>();
+    Treap<Integer> treap = new TreapSet<>();
     treap.add(4);
     treap.add(5);
     treap.delete(4);

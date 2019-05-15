@@ -76,7 +76,7 @@ public class SetAddBenchmark {
   @Benchmark
   public void treap_add_with_priority(TreapState state, Blackhole blackhole) {
     TreapSet<Integer> set = state.getSet();
-    set.getTreap().add(state.getValue(), state.getPriority());
+    set.add(state.getValue(), state.getPriority());
     blackhole.consume(set);
   }
 

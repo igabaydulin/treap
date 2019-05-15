@@ -20,7 +20,7 @@ public class TreapHeightTest {
   @DisplayName("Check treap depth for 1 element")
   public void check_treap_height_1() {
     int size = 1;
-    Treap<Integer> treap = new TreapImpl<>();
+    Treap<Integer> treap = new TreapSet<>();
     for (int i = 0; i < size; ++i) {
       treap.add(random.nextInt(size));
     }
@@ -31,7 +31,7 @@ public class TreapHeightTest {
   @DisplayName("Check treap depth for 10 elements")
   public void check_treap_height_10() {
     int size = 10;
-    Treap<Integer> treap = new TreapImpl<>();
+    Treap<Integer> treap = new TreapSet<>();
     for (int i = 0; i < size; ++i) {
       treap.add(random.nextInt(size));
     }
@@ -42,7 +42,7 @@ public class TreapHeightTest {
   @DisplayName("Check treap depth for 100 elements")
   public void check_treap_height_100() {
     int size = 100;
-    Treap<Integer> treap = new TreapImpl<>();
+    Treap<Integer> treap = new TreapSet<>();
     for (int i = 0; i < size; ++i) {
       treap.add(random.nextInt(size));
     }
@@ -54,7 +54,7 @@ public class TreapHeightTest {
   @DisplayName("Check treap depth for 1000 elements")
   public void check_treap_height_1000() {
     int size = 1000;
-    Treap<Integer> treap = new TreapImpl<>();
+    Treap<Integer> treap = new TreapSet<>();
     for (int i = 0; i < size; ++i) {
       treap.add(random.nextInt(size));
     }
@@ -66,7 +66,7 @@ public class TreapHeightTest {
   @DisplayName("Check treap depth for 10000 elements")
   public void check_treap_height_10000() {
     int size = 10000;
-    Treap<Integer> treap = new TreapImpl<>();
+    Treap<Integer> treap = new TreapSet<>();
     for (int i = 0; i < size; ++i) {
       treap.add(random.nextInt(size));
     }
