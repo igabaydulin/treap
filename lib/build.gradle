@@ -4,7 +4,7 @@ plugins {
 }
 
 group 'com.github.igababydulin.collections'
-version '1.0-SNAPSHOT'
+version '0.1.M2'
 
 sourceCompatibility = 1.8
 
