@@ -1,6 +1,7 @@
 package com.github.igabaydulin.collections;
 
 import com.github.igabaydulin.collections.utils.Reference;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Objects;
@@ -473,5 +474,10 @@ public class TreapSet<T extends Comparable<T>> extends AbstractTreap<T> implemen
     int getHeight() {
       return height;
     }
+  }
+
+  @Override
+  public String toString() {
+    return Arrays.toString(toArray());
   }
 }
