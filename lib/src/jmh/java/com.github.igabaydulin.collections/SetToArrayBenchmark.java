@@ -23,7 +23,7 @@ public class SetToArrayBenchmark {
       }
     }
 
-    public Set<Integer> getSet() {
+    Set<Integer> getSet() {
       return set;
     }
   }
@@ -39,7 +39,7 @@ public class SetToArrayBenchmark {
       }
     }
 
-    public Set<Integer> getSet() {
+    Set<Integer> getSet() {
       return set;
     }
   }

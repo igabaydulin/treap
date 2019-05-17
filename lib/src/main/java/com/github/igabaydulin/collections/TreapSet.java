@@ -7,67 +7,31 @@ import java.util.Iterator;
 import java.util.Objects;
 import java.util.Set;
 import java.util.Stack;
-import java.util.function.Supplier;
 
 public class TreapSet<T extends Comparable<T>> extends AbstractTreap<T> implements Set<T> {
 
-  TreapSet(long seed) {
+  private Node<T> root;
+
+  public TreapSet(long seed) {
     super(seed);
   }
 
-  TreapSet() {}
+  public TreapSet() {}
 
-  private TreapSet(AbstractTreap.Node<T> node) {
-    super(node);
-  }
-
-  private <R> R eval(R defaultResult, Supplier<R> supplier) {
-    if (isEmpty()) {
-      return defaultResult;
-    }
-    return supplier.get();
-  }
-
-  private boolean update(Runnable action) {
-    return update(() -> false, action);
-  }
-
-  private boolean update(Runnable defaultAction, Runnable action) {
-    return update(
-        () -> {
-          defaultAction.run();
-          return true;
-        },
-        action);
-  }
-
-  private boolean update(Supplier<Boolean> defaultAction, Runnable action) {
-    if (isEmpty()) {
-      return defaultAction.get();
-    }
-    return checkUpdate(action);
-  }
-
-  private boolean update(Supplier<Boolean> defaultAction, Supplier<Boolean> action) {
-    if (isEmpty()) {
-      return defaultAction.get();
-    }
-    return action.get();
-  }
-
-  private boolean update(Supplier<Boolean> action) {
-    return update(() -> false, action);
-  }
-
-  private boolean checkUpdate(Runnable runnable) {
-    int currentSize = size();
-    runnable.run();
-    return currentSize < size();
+  private TreapSet(Node<T> node) {
+    this.root = node;
   }
 
   @Override
   public boolean add(T value, double priority) {
-    return update(() -> setRoot(new Node<>(value, priority)), () -> setRoot(getRoot().add(value, priority)));
+    int size = size();
+    if (isEmpty()) {
+      root = new Node<>(value, priority);
+    } else {
+      root = root.add(value, priority);
+    }
+
+    return size < size();
   }
 
   @Override
@@ -80,7 +44,11 @@ public class TreapSet<T extends Comparable<T>> extends AbstractTreap<T> implemen
 
   @Override
   public boolean contains(T value) {
-    return eval(false, () -> getRoot().contains(value));
+    if (isEmpty()) {
+      return false;
+    }
+
+    return root.contains(value);
   }
 
   @Override
@@ -100,7 +68,14 @@ public class TreapSet<T extends Comparable<T>> extends AbstractTreap<T> implemen
 
   @Override
   public boolean delete(T value) {
-    return update(() -> setRoot(getRoot().delete(value)));
+    if (isEmpty()) {
+      return false;
+    }
+
+    int size = size();
+    root = root.delete(value);
+
+    return size > size();
   }
 
   @Override
@@ -126,30 +101,33 @@ public class TreapSet<T extends Comparable<T>> extends AbstractTreap<T> implemen
   @Override
   @SuppressWarnings("unchecked")
   public boolean retainAll(Collection<?> c) {
-    setRoot(null);
+    root = null;
     c.forEach(it -> add((T) it));
     return true;
   }
 
   @Override
   public void clear() {
-    setRoot(null);
+    root = null;
   }
 
   @Override
   public boolean split(T value, Reference<Treap<T>> left, Reference<Treap<T>> right) {
-    return update(
-        () -> {
-          Reference<Node<T>> leftNode = new Reference<>();
-          Reference<Node<T>> rightNode = new Reference<>();
+    if (isEmpty()) {
+      left.set(null);
+      right.set(null);
+      return false;
+    }
 
-          boolean contains = getRoot().split(value, leftNode, rightNode);
+    Reference<Node<T>> leftNode = new Reference<>();
+    Reference<Node<T>> rightNode = new Reference<>();
 
-          left.set(new TreapSet<>(leftNode.get()));
-          right.set(new TreapSet<>(rightNode.get()));
+    boolean contains = root.split(value, leftNode, rightNode);
 
-          return contains;
-        });
+    left.set(new TreapSet<>(leftNode.get()));
+    right.set(new TreapSet<>(rightNode.get()));
+
+    return contains;
   }
 
   /**
@@ -158,22 +136,30 @@ public class TreapSet<T extends Comparable<T>> extends AbstractTreap<T> implemen
    */
   @Override
   public Treap<T> merge(Treap<T> right) {
-    return new TreapSet<>(Node.merge(this.getRoot(), ((TreapSet<T>) right).getRoot()));
+    return new TreapSet<>(Node.merge(this.root, ((TreapSet<T>) right).root));
   }
 
   @Override
   public int size() {
-    return eval(0, () -> getRoot().getSize());
+    if (Objects.isNull(root)) {
+      return 0;
+    }
+
+    return root.getSize();
   }
 
   @Override
   public int height() {
-    return eval(0, () -> getRoot().getHeight());
+    if (Objects.isNull(root)) {
+      return 0;
+    }
+
+    return root.getHeight();
   }
 
   @Override
-  public Node<T> getRoot() {
-    return (Node<T>) super.getRoot();
+  public boolean isEmpty() {
+    return root == null;
   }
 
   @Override
@@ -204,7 +190,7 @@ public class TreapSet<T extends Comparable<T>> extends AbstractTreap<T> implemen
   @Override
   @SuppressWarnings("unchecked")
   public <T1> T1[] toArray(T1[] a) {
-    Node<T> root = getRoot();
+    Node<T> root = this.root;
     int index = 0;
     int size = size();
     T1[] array = (T1[]) java.lang.reflect.Array.newInstance(a.getClass().getComponentType(), size);
@@ -233,6 +219,9 @@ public class TreapSet<T extends Comparable<T>> extends AbstractTreap<T> implemen
 
     private int size;
     private int height;
+
+    private Node<T> left;
+    private Node<T> right;
 
     private Node<T> parent;
 
@@ -282,7 +271,7 @@ public class TreapSet<T extends Comparable<T>> extends AbstractTreap<T> implemen
             return this;
           }
 
-          node = node.getLeft();
+          node = node.left;
         } else {
           if (Objects.isNull(node.getRight())) {
             node.setRight(new Node<>(value, priority));
@@ -290,7 +279,7 @@ public class TreapSet<T extends Comparable<T>> extends AbstractTreap<T> implemen
             return this;
           }
 
-          node = node.getRight();
+          node = node.right;
         }
       }
 
@@ -305,7 +294,7 @@ public class TreapSet<T extends Comparable<T>> extends AbstractTreap<T> implemen
               node = left;
               break;
             } else {
-              node = node.getLeft();
+              node = node.left;
             }
           } else {
             if (Objects.isNull(node.getRight())) {
@@ -314,7 +303,7 @@ public class TreapSet<T extends Comparable<T>> extends AbstractTreap<T> implemen
               node = right;
               break;
             } else {
-              node = node.getRight();
+              node = node.right;
             }
           }
         }
@@ -415,43 +404,39 @@ public class TreapSet<T extends Comparable<T>> extends AbstractTreap<T> implemen
     }
 
     private void updateInfo() {
-      if (Objects.nonNull(getLeft()) && Objects.nonNull(getRight())) {
-        this.size = getLeft().getSize() + getRight().getSize() + 1;
-        this.height = Math.max(getLeft().getHeight(), getRight().getHeight()) + 1;
-      } else if (Objects.nonNull(getLeft())) {
-        this.size = getLeft().getSize() + 1;
-        this.height = getLeft().getHeight() + 1;
-      } else if (Objects.nonNull(getRight())) {
-        this.size = getRight().getSize() + 1;
-        this.height = getRight().getHeight() + 1;
+      if (Objects.nonNull(left) && Objects.nonNull(right)) {
+        this.size = left.getSize() + right.getSize() + 1;
+        this.height = Math.max(left.getHeight(), right.getHeight()) + 1;
+      } else if (Objects.nonNull(left)) {
+        this.size = left.getSize() + 1;
+        this.height = left.getHeight() + 1;
+      } else if (Objects.nonNull(right)) {
+        this.size = right.getSize() + 1;
+        this.height = right.getHeight() + 1;
       } else {
         this.size = 1;
         this.height = 1;
       }
     }
 
-    @Override
-    public Node<T> getLeft() {
-      return (Node<T>) super.getLeft();
+    Node<T> getLeft() {
+      return left;
     }
 
-    @Override
-    public Node<T> getRight() {
-      return (Node<T>) super.getRight();
+    Node<T> getRight() {
+      return right;
     }
 
-    @Override
-    public void setLeft(AbstractTreap.Node<T> left) {
-      super.setLeft(left);
+    void setLeft(Node<T> left) {
+      this.left = left;
       if (Objects.nonNull(left)) {
         getLeft().setParent(this);
       }
       updateInfo();
     }
 
-    @Override
-    public void setRight(AbstractTreap.Node<T> right) {
-      super.setRight(right);
+    void setRight(Node<T> right) {
+      this.right = right;
       if (Objects.nonNull(right)) {
         getRight().setParent(this);
       }

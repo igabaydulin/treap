@@ -1,7 +1,9 @@
 jmh {
-    warmupForks = 1
+    warmupForks = 2
     warmupIterations = 2
-    iterations = 3
-    fork = 2
-    jvmArgs = ['-XX:-BackgroundCompilation', '-XX:-TieredCompilation']
+    iterations = 4
+    fork = 4
+    jvmArgs = ['-XX:-BackgroundCompilation', '-XX:-TieredCompilation', '-Xms256M', '-Xmx256M']
+    benchmarkParameters = ['size':['10000'], 'contains':['false', 'true'], 'balanced':['false', 'true']]
+    include = ['.*add']
 }

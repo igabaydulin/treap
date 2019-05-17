@@ -5,11 +5,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 @DisplayName("Testing tree conversion to array")
-public class TreapArrayTest {
+class TreapArrayTest {
 
   @Test
   @DisplayName("Check ordering and non-duplication")
-  public void check_ordering_and_non_duplication() {
+  void check_ordering_and_non_duplication() {
     TreapSet<Integer> treapSet = new TreapSet<>(10);
 
     treapSet.add(3);
