@@ -4,6 +4,8 @@ import com.github.igabaydulin.collections.utils.Reference;
 
 interface Treap<T extends Comparable<T>> {
 
+  T get(int index);
+
   boolean contains(T value);
 
   boolean add(T value, double priority);

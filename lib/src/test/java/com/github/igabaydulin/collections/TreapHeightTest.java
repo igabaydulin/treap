@@ -10,7 +10,7 @@ import org.junit.jupiter.api.RepeatedTest;
 // TODO: Cannot combine @RepeatedTest and @ParameterizedTest;
 //       see https://github.com/junit-team/junit5/issues/1224
 @DisplayName("Treap height measurements")
-public class TreapHeightTest {
+class TreapHeightTest {
 
   private static final double DEPTH_COMPLEXITY_CONSTANT = 3;
   private static final Random random = new Random();
@@ -18,7 +18,7 @@ public class TreapHeightTest {
   // TODO: Feeling dummy, might delete later :)
   @RepeatedTest(100)
   @DisplayName("Check treap depth for 1 element")
-  public void check_treap_height_1() {
+  void check_treap_height_1() {
     int size = 1;
     Treap<Integer> treap = new TreapSet<>();
     for (int i = 0; i < size; ++i) {
@@ -29,7 +29,7 @@ public class TreapHeightTest {
 
   @RepeatedTest(100)
   @DisplayName("Check treap depth for 10 elements")
-  public void check_treap_height_10() {
+  void check_treap_height_10() {
     int size = 10;
     Treap<Integer> treap = new TreapSet<>();
     for (int i = 0; i < size; ++i) {
@@ -40,7 +40,7 @@ public class TreapHeightTest {
 
   @RepeatedTest(100)
   @DisplayName("Check treap depth for 100 elements")
-  public void check_treap_height_100() {
+  void check_treap_height_100() {
     int size = 100;
     Treap<Integer> treap = new TreapSet<>();
     for (int i = 0; i < size; ++i) {
@@ -52,7 +52,7 @@ public class TreapHeightTest {
 
   @RepeatedTest(100)
   @DisplayName("Check treap depth for 1000 elements")
-  public void check_treap_height_1000() {
+  void check_treap_height_1000() {
     int size = 1000;
     Treap<Integer> treap = new TreapSet<>();
     for (int i = 0; i < size; ++i) {
@@ -64,7 +64,7 @@ public class TreapHeightTest {
 
   @RepeatedTest(100)
   @DisplayName("Check treap depth for 10000 elements")
-  public void check_treap_height_10000() {
+  void check_treap_height_10000() {
     int size = 10000;
     Treap<Integer> treap = new TreapSet<>();
     for (int i = 0; i < size; ++i) {
@@ -74,7 +74,7 @@ public class TreapHeightTest {
     check(treap);
   }
 
-  public void check(Treap treap) {
+  void check(Treap treap) {
     int height = treap.height();
 
     double actualConstant = height / (Math.log(treap.size() + 1) / Math.log(2));

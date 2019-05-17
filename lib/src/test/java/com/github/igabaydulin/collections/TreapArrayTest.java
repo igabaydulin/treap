@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+@SuppressWarnings("OverwrittenKey")
 @DisplayName("Testing tree conversion to array")
 class TreapArrayTest {
 

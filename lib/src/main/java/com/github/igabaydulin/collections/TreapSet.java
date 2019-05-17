@@ -28,6 +28,25 @@ public class TreapSet<T extends Comparable<T>> implements Treap<T>, Set<T> {
   }
 
   @Override
+  public T get(int index) {
+    if (index < 0 || index >= size()) {
+      throw new IndexOutOfBoundsException();
+    }
+
+    Node<T> currentNode = root;
+    while (true) {
+      int leftSize = currentNode.left == null ? 0 : currentNode.left.size;
+      if (leftSize == index) {
+        return currentNode.value;
+      }
+      currentNode = leftSize > index ? currentNode.left : currentNode.right;
+      if (leftSize < index) {
+        index -= leftSize + 1;
+      }
+    }
+  }
+
+  @Override
   public boolean add(T value) {
     return add(value, random.nextDouble());
   }

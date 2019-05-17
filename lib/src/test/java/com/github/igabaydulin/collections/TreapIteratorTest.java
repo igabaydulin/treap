@@ -5,11 +5,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 @DisplayName("Testing iterator and foreach usage")
-public class TreapIteratorTest {
+class TreapIteratorTest {
 
   @Test
   @DisplayName("Check foreach for a single value treap")
-  public void iterator_test1() {
+  void iterator_test1() {
     TreapSet<Integer> set = new TreapSet<>();
     set.add(3);
     for (int value : set) {
@@ -19,7 +19,7 @@ public class TreapIteratorTest {
 
   @Test
   @DisplayName("Check foreach for multiple values in a treap")
-  public void iterator_test2() {
+  void iterator_test2() {
     TreapSet<Integer> set = new TreapSet<>();
     set.add(3, 0.3);
     set.add(1, 0.1);
