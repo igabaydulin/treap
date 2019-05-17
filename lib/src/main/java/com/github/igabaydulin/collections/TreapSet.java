@@ -5,21 +5,31 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Objects;
+import java.util.Random;
 import java.util.Set;
 import java.util.Stack;
 
-public class TreapSet<T extends Comparable<T>> extends AbstractTreap<T> implements Set<T> {
+public class TreapSet<T extends Comparable<T>> implements Treap<T>, Set<T> {
 
+  private final Random random;
   private Node<T> root;
 
   public TreapSet(long seed) {
-    super(seed);
+    this.random = new Random(seed);
   }
 
-  public TreapSet() {}
+  public TreapSet() {
+    this.random = new Random();
+  }
 
   private TreapSet(Node<T> node) {
+    this();
     this.root = node;
+  }
+
+  @Override
+  public boolean add(T value) {
+    return add(value, random.nextDouble());
   }
 
   @Override
@@ -215,18 +225,22 @@ public class TreapSet<T extends Comparable<T>> extends AbstractTreap<T> implemen
     return array;
   }
 
-  public static class Node<T extends Comparable<T>> extends AbstractTreap.Node<T> {
+  public static class Node<T extends Comparable<T>> {
 
-    private int size;
-    private int height;
+    private T value;
+    private double priority;
 
     private Node<T> left;
     private Node<T> right;
 
     private Node<T> parent;
 
+    private int size;
+    private int height;
+
     Node(T value, double priority) {
-      super(value, priority);
+      this.value = value;
+      this.priority = priority;
       this.size = 1;
       this.height = 1;
     }
@@ -417,6 +431,14 @@ public class TreapSet<T extends Comparable<T>> extends AbstractTreap<T> implemen
         this.size = 1;
         this.height = 1;
       }
+    }
+
+    public T getValue() {
+      return value;
+    }
+
+    public double getPriority() {
+      return priority;
     }
 
     Node<T> getLeft() {
