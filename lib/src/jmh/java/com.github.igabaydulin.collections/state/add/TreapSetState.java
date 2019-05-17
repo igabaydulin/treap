@@ -1,4 +1,4 @@
-package com.github.igabaydulin.collections.state;
+package com.github.igabaydulin.collections.state.add;
 
 import com.github.igabaydulin.collections.TreapSet;
 import java.util.Random;

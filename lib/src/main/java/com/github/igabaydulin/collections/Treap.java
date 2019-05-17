@@ -10,6 +10,14 @@ interface Treap<T extends Comparable<T>> {
 
   boolean add(T value);
 
+  boolean addBack(T[] values, double[] priorities);
+
+  boolean addBack(T[] values);
+
+  boolean addFront(T[] values, double[] priorities);
+
+  boolean addFront(T[] values);
+
   boolean delete(T value);
 
   boolean split(T value, Reference<Treap<T>> left, Reference<Treap<T>> right);

@@ -45,6 +45,108 @@ public class TreapSet<T extends Comparable<T>> implements Treap<T>, Set<T> {
   }
 
   @Override
+  public boolean addBack(T[] values, double[] priorities) {
+    if (values.length == 0) {
+      return false;
+    }
+
+    int index = 0;
+    Node<T> back;
+    if (root == null) {
+      add(values[0], priorities[0]);
+      back = root;
+      ++index;
+    } else {
+      back = root;
+      while (back.right != null) {
+        back = back.right;
+      }
+    }
+
+    while (index < values.length) {
+      if (back.priority > priorities[index]) {
+        back.setRight(new Node<>(values[index], priorities[index]));
+        back = back.right;
+      } else {
+        while (back.parent != null && back.priority < priorities[index]) {
+          back = back.parent;
+        }
+
+        if (back.parent == null) {
+          root = new Node<>(values[index], priorities[index], back, null);
+        } else {
+          back.parent.setRight(new Node<>(values[index], priorities[index], back, null));
+        }
+      }
+      ++index;
+    }
+
+    return true;
+  }
+
+  @Override
+  public boolean addBack(T[] values) {
+    double[] priorities = new double[values.length];
+    for (int i = 0; i < priorities.length; ++i) {
+      priorities[i] = random.nextDouble();
+    }
+
+    return addBack(values, priorities);
+  }
+
+  // TODO: #addBack and #addFront looks very familiar
+  //       should implement #push(T[], double[], boolean asc)
+  @Override
+  public boolean addFront(T[] values, double[] priorities) {
+    if (values.length == 0) {
+      return false;
+    }
+
+    int index = 0;
+    Node<T> back;
+    if (root == null) {
+      add(values[0], priorities[0]);
+      back = root;
+      ++index;
+    } else {
+      back = root;
+      while (back.left != null) {
+        back = back.left;
+      }
+    }
+
+    while (index < values.length) {
+      if (back.priority > priorities[index]) {
+        back.setLeft(new Node<>(values[index], priorities[index]));
+        back = back.left;
+      } else {
+        while (back.parent != null && back.priority < priorities[index]) {
+          back = back.parent;
+        }
+
+        if (back.parent == null) {
+          root = new Node<>(values[index], priorities[index], null, back);
+        } else {
+          back.parent.setLeft(new Node<>(values[index], priorities[index], null, back));
+        }
+      }
+      ++index;
+    }
+
+    return true;
+  }
+
+  @Override
+  public boolean addFront(T[] values) {
+    double[] priorities = new double[values.length];
+    for (int i = 0; i < priorities.length; ++i) {
+      priorities[i] = random.nextDouble();
+    }
+
+    return addFront(values, priorities);
+  }
+
+  @Override
   public boolean addAll(Collection<? extends T> c) {
     int currentSize = size();
     c.forEach(this::add);
