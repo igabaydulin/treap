@@ -36,7 +36,7 @@ public static void main(String[] args) {
 ```
 Output:
 ```
-[1, 3, 4]
+TreapSet{array=[1, 3, 4]}
 ```
 It also implements its own interface [Treap](https://github.com/igabaydulin/treap/blob/master/lib/src/main/java/com/github/igabaydulin/collections/Treap.java), which kinda similar to `java.util.Set`:
 ```java
@@ -45,11 +45,13 @@ public static void main(String[] args) {
     treap.add(3);
     treap.add(1);
     treap.add(4);
+    treap.add(2);
+    treap.add(5);
 
     Reference<Treap<Integer>> left = new Reference<>();
     Reference<Treap<Integer>> right = new Reference<>();
 
-    treap.split(3, left, right);
+    treap.split(3, left, right, false);
 
     System.out.println(String.format("left: %s", left));
     System.out.println(String.format("right: %s", right));
@@ -57,8 +59,8 @@ public static void main(String[] args) {
 ```
 Output;
 ```
-left: [1, 3]
-right: [4]
+left: TreapSet{array=[1, 2]}
+right: TreapSet{array=[4, 5]}
 ```
 
 ## Project Hierarchy

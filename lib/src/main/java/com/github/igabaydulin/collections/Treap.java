@@ -1,16 +1,15 @@
 package com.github.igabaydulin.collections;
 
 import com.github.igabaydulin.collections.utils.Reference;
+import java.util.Set;
 
-interface Treap<T extends Comparable<T>> {
+interface Treap<T extends Comparable<T>> extends Set<T> {
 
   T get(int index);
 
   boolean contains(T value);
 
   boolean add(T value, double priority);
-
-  boolean add(T value);
 
   boolean addBack(T[] values, double[] priorities);
 
@@ -22,6 +21,8 @@ interface Treap<T extends Comparable<T>> {
 
   boolean delete(T value);
 
+  boolean split(T value, Reference<Treap<T>> left, Reference<Treap<T>> right, boolean keep);
+
   boolean split(T value, Reference<Treap<T>> left, Reference<Treap<T>> right);
 
   /**
@@ -32,9 +33,5 @@ interface Treap<T extends Comparable<T>> {
    */
   Treap<T> merge(Treap<T> right);
 
-  int size();
-
   int height();
-
-  boolean isEmpty();
 }

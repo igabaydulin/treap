@@ -34,10 +34,6 @@ public class TreeSetState {
     set.clear();
   }
 
-  public int getSize() {
-    return size;
-  }
-
   public Integer getValue() {
     return value;
   }
