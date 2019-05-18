@@ -8,7 +8,7 @@ import java.util.Iterator;
 import java.util.Objects;
 import java.util.Stack;
 
-public class TreapSet<K extends Comparable<K>> implements Treap<K> {
+public class TreapSet<K> implements Treap<K> {
 
   private TreapMap<K, K> treapMap;
 
@@ -31,15 +31,10 @@ public class TreapSet<K extends Comparable<K>> implements Treap<K> {
   }
 
   @Override
-  public boolean contains(K value) {
-    return treapMap.get(value) != null;
-  }
-
-  @Override
-  @SuppressWarnings("unchecked")
   public boolean contains(Object value) {
     try {
-      return contains((K) value);
+      //noinspection SuspiciousMethodCalls
+      return treapMap.get(value) != null;
     } catch (ClassCastException ex) {
       return false;
     }

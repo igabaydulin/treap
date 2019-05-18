@@ -2,24 +2,32 @@ package com.github.igabaydulin.collections;
 
 import com.github.igabaydulin.collections.utils.Reference;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.NavigableMap;
+import java.util.NavigableSet;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Queue;
 import java.util.Random;
 import java.util.Set;
+import java.util.SortedMap;
 
-public class TreapMap<K extends Comparable<K>, V> implements ValueTreap<K, V> {
+public class TreapMap<K, V> implements ValueTreap<K, V> {
 
   private final Random random;
+  private final Comparator<K> comparator;
   private Node<K, V> root;
 
   public TreapMap(long seed) {
     this.random = new Random(seed);
+    this.comparator = null;
   }
 
   public TreapMap() {
     this.random = new Random();
+    this.comparator = null;
   }
 
   private TreapMap(Node<K, V> node) {
@@ -29,6 +37,13 @@ public class TreapMap<K extends Comparable<K>, V> implements ValueTreap<K, V> {
 
   TreapMap(Random random) {
     this.random = random;
+    this.comparator = null;
+  }
+
+  private TreapMap(Node<K, V> node, Random random, Comparator<K> comparator) {
+    this.random = random;
+    this.comparator = comparator;
+    this.root = node;
   }
 
   @Override
@@ -59,19 +74,20 @@ public class TreapMap<K extends Comparable<K>, V> implements ValueTreap<K, V> {
   @Override
   public V put(K key, V value, double priority) {
     if (root == null) {
-      root = new Node<>(key, value, priority);
+      root = new Node<>(key, value, priority, comparator);
       return null;
     } else {
       Node<K, V> node = root;
 
       while (node.getPriority() > priority) {
-        if (node.getKey().compareTo(key) == 0) {
+        int comparison = node.compare(key);
+        if (comparison == 0) {
           V previousValue = node.value;
           node.value = value;
           return previousValue;
-        } else if (node.getKey().compareTo(key) > 0) {
+        } else if (comparison > 0) {
           if (Objects.isNull(node.getLeft())) {
-            node.setLeft(new Node<>(key, value, priority));
+            node.setLeft(new Node<>(key, value, priority, comparator));
             Node.updateParentInfo(node);
             return null;
           }
@@ -79,7 +95,7 @@ public class TreapMap<K extends Comparable<K>, V> implements ValueTreap<K, V> {
           node = node.left;
         } else {
           if (Objects.isNull(node.getRight())) {
-            node.setRight(new Node<>(key, value, priority));
+            node.setRight(new Node<>(key, value, priority, comparator));
             Node.updateParentInfo(node);
             return null;
           }
@@ -89,14 +105,15 @@ public class TreapMap<K extends Comparable<K>, V> implements ValueTreap<K, V> {
       }
 
       while (true) {
-        if (node.getKey().compareTo(key) == 0) {
+        int comparison = node.compare(key);
+        if (comparison == 0) {
           V previousValue = node.value;
           node.value = value;
           return previousValue;
         } else {
-          if (node.getKey().compareTo(key) > 0) {
+          if (comparison > 0) {
             if (Objects.isNull(node.getLeft())) {
-              Node<K, V> left = new Node<>(key, value, priority);
+              Node<K, V> left = new Node<>(key, value, priority, comparator);
               node.setLeft(left);
               node = left;
               break;
@@ -105,7 +122,7 @@ public class TreapMap<K extends Comparable<K>, V> implements ValueTreap<K, V> {
             }
           } else {
             if (Objects.isNull(node.getRight())) {
-              Node<K, V> right = new Node<>(key, value, priority);
+              Node<K, V> right = new Node<>(key, value, priority, comparator);
               node.setRight(right);
               node = right;
               break;
@@ -121,7 +138,7 @@ public class TreapMap<K extends Comparable<K>, V> implements ValueTreap<K, V> {
 
         if (node.getPriority() > parent.getPriority()) {
           node.setParent(parent.getParent());
-          if (node.getKey().compareTo(parent.getKey()) < 0) {
+          if (node.compare(parent.getKey()) < 0) {
             parent.setLeft(node.getRight());
             node.setRight(parent);
           } else {
@@ -130,7 +147,7 @@ public class TreapMap<K extends Comparable<K>, V> implements ValueTreap<K, V> {
           }
 
           if (Objects.nonNull(node.getParent())) {
-            if (node.getParent().getKey().compareTo(node.getKey()) > 0) {
+            if (node.getParent().compare(node.getKey()) > 0) {
               node.getParent().setLeft(node);
             } else {
               node.getParent().setRight(node);
@@ -169,7 +186,7 @@ public class TreapMap<K extends Comparable<K>, V> implements ValueTreap<K, V> {
 
     while (index < keys.length) {
       if (back.priority > priorities[index]) {
-        back.setRight(new Node<>(keys[index], values[index], priorities[index]));
+        back.setRight(new Node<>(keys[index], values[index], priorities[index], comparator));
         back = back.right;
       } else {
         while (back.parent != null && back.priority < priorities[index]) {
@@ -177,9 +194,9 @@ public class TreapMap<K extends Comparable<K>, V> implements ValueTreap<K, V> {
         }
 
         if (back.parent == null) {
-          root = new Node<>(keys[index], values[index], priorities[index], back, null);
+          root = new Node<>(keys[index], values[index], priorities[index], back, null, comparator);
         } else {
-          back.parent.setRight(new Node<>(keys[index], values[index], priorities[index], back, null));
+          back.parent.setRight(new Node<>(keys[index], values[index], priorities[index], back, null, comparator));
         }
       }
       ++index;
@@ -219,7 +236,7 @@ public class TreapMap<K extends Comparable<K>, V> implements ValueTreap<K, V> {
 
     while (index < keys.length) {
       if (back.priority > priorities[index]) {
-        back.setLeft(new Node<>(keys[index], values[index], priorities[index]));
+        back.setLeft(new Node<>(keys[index], values[index], priorities[index], comparator));
         back = back.left;
       } else {
         while (back.parent != null && back.priority < priorities[index]) {
@@ -227,9 +244,9 @@ public class TreapMap<K extends Comparable<K>, V> implements ValueTreap<K, V> {
         }
 
         if (back.parent == null) {
-          root = new Node<>(keys[index], values[index], priorities[index], null, back);
+          root = new Node<>(keys[index], values[index], priorities[index], null, back, comparator);
         } else {
-          back.parent.setLeft(new Node<>(keys[index], values[index], priorities[index], null, back));
+          back.parent.setLeft(new Node<>(keys[index], values[index], priorities[index], null, back, comparator));
         }
       }
       ++index;
@@ -254,22 +271,24 @@ public class TreapMap<K extends Comparable<K>, V> implements ValueTreap<K, V> {
   }
 
   @Override
-  public V get(K key) {
+  public V get(Object key) {
     if (isEmpty()) {
       return null;
     }
 
-    return root.get(key);
+    //noinspection unchecked
+    return root.get((K) key);
   }
 
   @Override
-  public V remove(K key) {
+  public V remove(Object key) {
     if (isEmpty()) {
       return null;
     }
 
     Reference<V> removedValue = new Reference<>();
-    root = root.delete(key, removedValue);
+    //noinspection unchecked
+    root = root.delete((K) key, removedValue);
 
     return removedValue.get();
   }
@@ -366,18 +385,6 @@ public class TreapMap<K extends Comparable<K>, V> implements ValueTreap<K, V> {
   }
 
   @Override
-  @SuppressWarnings("unchecked")
-  public V get(Object key) {
-    return get((K) key);
-  }
-
-  @Override
-  @SuppressWarnings("unchecked")
-  public V remove(Object key) {
-    return remove((K) key);
-  }
-
-  @Override
   public void putAll(Map<? extends K, ? extends V> m) {
     m.forEach(this::put);
   }
@@ -387,10 +394,9 @@ public class TreapMap<K extends Comparable<K>, V> implements ValueTreap<K, V> {
     root = null;
   }
 
-  // TODO: implement
   @Override
   public Set<K> keySet() {
-    throw new UnsupportedOperationException();
+    return navigableKeySet();
   }
 
   // TODO: implement
@@ -405,7 +411,243 @@ public class TreapMap<K extends Comparable<K>, V> implements ValueTreap<K, V> {
     throw new UnsupportedOperationException();
   }
 
-  static class Node<K extends Comparable<K>, V> {
+  @Override
+  public Node<K, V> lowerEntry(K key) {
+    Node<K, V> node = root;
+    while (node != null) {
+      if (node.compare(key) < 0) {
+        return node;
+      }
+      node = node.left;
+    }
+
+    return null;
+  }
+
+  @Override
+  public K lowerKey(K key) {
+    Entry<K, V> entry = lowerEntry(key);
+    if (entry != null) {
+      return entry.getKey();
+    }
+
+    return null;
+  }
+
+  @Override
+  public Node<K, V> floorEntry(K key) {
+    Node<K, V> node = root;
+    while (node != null) {
+      if (node.compare(key) <= 0) {
+        return node;
+      }
+      node = node.left;
+    }
+
+    return null;
+  }
+
+  @Override
+  public K floorKey(K key) {
+    Entry<K, V> entry = floorEntry(key);
+    if (entry != null) {
+      return entry.getKey();
+    }
+
+    return null;
+  }
+
+  @Override
+  public Node<K, V> ceilingEntry(K key) {
+    Node<K, V> node = root;
+    while (node != null) {
+      if (node.compare(key) >= 0) {
+        return node;
+      }
+      node = node.left;
+    }
+
+    return null;
+  }
+
+  @Override
+  public K ceilingKey(K key) {
+    Entry<K, V> entry = ceilingEntry(key);
+    if (entry != null) {
+      return entry.getKey();
+    }
+
+    return null;
+  }
+
+  @Override
+  public Node<K, V> higherEntry(K key) {
+    Node<K, V> node = root;
+    while (node != null) {
+      if (node.compare(key) > 0) {
+        return node;
+      }
+      node = node.left;
+    }
+
+    return null;
+  }
+
+  @Override
+  public K higherKey(K key) {
+    Entry<K, V> entry = ceilingEntry(key);
+    if (entry != null) {
+      return entry.getKey();
+    }
+
+    return null;
+  }
+
+  @Override
+  public Node<K, V> firstEntry() {
+    if (root == null) {
+      return null;
+    }
+
+    Node<K, V> node = root;
+    while (node.left != null) {
+      node = node.left;
+    }
+
+    return node;
+  }
+
+  @Override
+  public Node<K, V> lastEntry() {
+    if (root == null) {
+      return null;
+    }
+
+    Node<K, V> node = root;
+    while (node.right != null) {
+      node = node.right;
+    }
+
+    return node;
+  }
+
+  @Override
+  public Node<K, V> pollFirstEntry() {
+    Node<K, V> node = firstEntry();
+    if (node != null) {
+      node.delete(node.key, new Reference<>());
+    }
+    return node;
+  }
+
+  @Override
+  public Node<K, V> pollLastEntry() {
+    Node<K, V> node = lastEntry();
+    if (node != null) {
+      node.delete(node.key, new Reference<>());
+    }
+    return node;
+  }
+
+  @Override
+  public NavigableMap<K, V> descendingMap() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public NavigableSet<K> navigableKeySet() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public NavigableSet<K> descendingKeySet() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public TreapMap<K, V> subMap(K fromKey, boolean fromInclusive, K toKey, boolean toInclusive) {
+    TreapMap<K, V> from = tailMap(fromKey, fromInclusive);
+    return from.headMap(toKey, toInclusive);
+  }
+
+  @Override
+  public TreapMap<K, V> headMap(K toKey, boolean inclusive) {
+    Node<K, V> node;
+    if (inclusive) {
+      node = floorEntry(toKey);
+    } else {
+      node = lowerEntry(toKey);
+    }
+
+    return new TreapMap<>(node, random, comparator);
+  }
+
+  @Override
+  public TreapMap<K, V> tailMap(K fromKey, boolean inclusive) {
+    Node<K, V> node;
+    if (inclusive) {
+      node = ceilingEntry(fromKey);
+    } else {
+      node = higherEntry(fromKey);
+    }
+
+    return new TreapMap<>(node, random, comparator);
+  }
+
+  @Override
+  public SortedMap<K, V> subMap(K fromKey, K toKey) {
+    return subMap(fromKey, true, toKey, false);
+  }
+
+  @Override
+  public SortedMap<K, V> headMap(K toKey) {
+    return headMap(toKey, false);
+  }
+
+  @Override
+  public SortedMap<K, V> tailMap(K fromKey) {
+    return tailMap(fromKey, true);
+  }
+
+  // TODO: Implement Comparator usage
+  /**
+   * Returns the comparator used to order the keys in this map, or {@code null} if this map uses the {@linkplain
+   * Comparable natural ordering} of its keys.
+   */
+  @Override
+  public Comparator<? super K> comparator() {
+    return null;
+  }
+
+  @Override
+  public K firstKey() {
+    if (root == null) {
+      throw new NoSuchElementException();
+    }
+
+    Node<K, V> node = root;
+    while (node.left != null) {
+      node = node.left;
+    }
+    return node.key;
+  }
+
+  @Override
+  public K lastKey() {
+    if (root == null) {
+      throw new NoSuchElementException();
+    }
+
+    Node<K, V> node = root;
+    while (node.right != null) {
+      node = node.right;
+    }
+    return node.key;
+  }
+
+  static class Node<K, V> implements Entry<K, V> {
+
+    private Comparator<K> comparator;
 
     private K key;
     private V value;
@@ -419,7 +661,8 @@ public class TreapMap<K extends Comparable<K>, V> implements ValueTreap<K, V> {
     private int size;
     private int height;
 
-    Node(K key, V value, double priority) {
+    Node(K key, V value, double priority, Comparator<K> comparator) {
+      this.comparator = comparator;
       this.key = key;
       this.value = value;
       this.priority = priority;
@@ -427,10 +670,18 @@ public class TreapMap<K extends Comparable<K>, V> implements ValueTreap<K, V> {
       this.height = 1;
     }
 
-    Node(K key, V value, double priority, Node<K, V> left, Node<K, V> right) {
-      this(key, value, priority);
+    Node(K key, V value, double priority, Node<K, V> left, Node<K, V> right, Comparator<K> comparator) {
+      this(key, value, priority, comparator);
       setLeft(left);
       setRight(right);
+    }
+
+    private int compare(K key) {
+      if (comparator == null) {
+        //noinspection unchecked
+        return ((Comparable<? super K>) this.key).compareTo(key);
+      }
+      return comparator.compare(this.key, key);
     }
 
     private V get(K key) {
@@ -438,7 +689,7 @@ public class TreapMap<K extends Comparable<K>, V> implements ValueTreap<K, V> {
         return this.value;
       }
 
-      if (key.compareTo(this.getKey()) > 0 && Objects.nonNull(getRight())) {
+      if (this.compare(key) < 0 && Objects.nonNull(getRight())) {
         return getRight().get(key);
       } else if (Objects.nonNull(getLeft())) {
         return getLeft().get(key);
@@ -447,7 +698,7 @@ public class TreapMap<K extends Comparable<K>, V> implements ValueTreap<K, V> {
       return null;
     }
 
-    private static <K extends Comparable<K>, V> void updateParentInfo(Node<K, V> node) {
+    private static <K, V> void updateParentInfo(Node<K, V> node) {
       while (Objects.nonNull(node.getParent())) {
         node.getParent().updateInfo();
         node = node.getParent();
@@ -458,7 +709,7 @@ public class TreapMap<K extends Comparable<K>, V> implements ValueTreap<K, V> {
       if (Objects.equals(key, this.getKey())) {
         removedValue.set(this.value);
         return merge(this.getLeft(), this.getRight());
-      } else if (key.compareTo(this.getKey()) > 0 && Objects.nonNull(this.getRight())) {
+      } else if (this.compare(key) < 0 && Objects.nonNull(this.getRight())) {
         setRight(getRight().delete(key, removedValue));
       } else if (Objects.nonNull(this.getLeft())) {
         setLeft(getLeft().delete(key, removedValue));
@@ -467,7 +718,7 @@ public class TreapMap<K extends Comparable<K>, V> implements ValueTreap<K, V> {
       return this;
     }
 
-    static <K extends Comparable<K>, V> Node<K, V> merge(Node<K, V> left, Node<K, V> right) {
+    static <K, V> Node<K, V> merge(Node<K, V> left, Node<K, V> right) {
       if (Objects.isNull(left)) {
         return right;
       } else if (Objects.isNull(right)) {
@@ -475,15 +726,27 @@ public class TreapMap<K extends Comparable<K>, V> implements ValueTreap<K, V> {
       }
 
       if (left.getPriority() > right.getPriority()) {
-        return new Node<>(left.getKey(), left.value, left.getPriority(), left.getLeft(), merge(left.getRight(), right));
+        return new Node<>(
+            left.getKey(),
+            left.value,
+            left.getPriority(),
+            left.getLeft(),
+            merge(left.getRight(), right),
+            left.comparator);
       } else {
         return new Node<>(
-            right.getKey(), right.value, right.getPriority(), merge(left, right.getLeft()), right.getRight());
+            right.getKey(),
+            right.value,
+            right.getPriority(),
+            merge(left, right.getLeft()),
+            right.getRight(),
+            left.comparator);
       }
     }
 
     boolean split(K key, Reference<Node<K, V>> leftRef, Reference<Node<K, V>> rightRef, boolean keepValue) {
-      if (key.compareTo(this.getKey()) > 0 || (keepValue && key.compareTo(this.getKey()) == 0)) {
+      int comparison = this.compare(key);
+      if (comparison < 0 || (keepValue && comparison == 0)) {
         if (Objects.isNull(this.getRight())) {
           leftRef.set(this);
           return false;
@@ -492,11 +755,12 @@ public class TreapMap<K extends Comparable<K>, V> implements ValueTreap<K, V> {
           Reference<Node<K, V>> right = new Reference<>();
 
           boolean result = this.getRight().split(key, leftRight, right, keepValue);
-          leftRef.set(new Node<>(this.getKey(), this.value, this.getPriority(), this.getLeft(), leftRight.get()));
+          leftRef.set(
+              new Node<>(this.getKey(), this.value, this.getPriority(), this.getLeft(), leftRight.get(), comparator));
           rightRef.set(right.get());
           return result;
         }
-      } else if (key.compareTo(this.getKey()) < 0) {
+      } else if (comparison > 0) {
         if (Objects.isNull(this.getLeft())) {
           rightRef.set(this);
           return false;
@@ -506,7 +770,8 @@ public class TreapMap<K extends Comparable<K>, V> implements ValueTreap<K, V> {
 
           boolean result = this.getLeft().split(key, left, rightLeft, keepValue);
           leftRef.set(left.get());
-          rightRef.set(new Node<>(this.getKey(), this.value, this.getPriority(), rightLeft.get(), this.getRight()));
+          rightRef.set(
+              new Node<>(this.getKey(), this.value, this.getPriority(), rightLeft.get(), this.getRight(), comparator));
           return result;
         }
       } else {
@@ -536,12 +801,19 @@ public class TreapMap<K extends Comparable<K>, V> implements ValueTreap<K, V> {
       }
     }
 
-    K getKey() {
+    @Override
+    public K getKey() {
       return key;
     }
 
-    V getValue() {
+    @Override
+    public V getValue() {
       return value;
+    }
+
+    @Override
+    public V setValue(V value) {
+      return null;
     }
 
     double getPriority() {

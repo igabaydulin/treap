@@ -3,11 +3,9 @@ package com.github.igabaydulin.collections;
 import com.github.igabaydulin.collections.utils.Reference;
 import java.util.Set;
 
-interface Treap<T extends Comparable<T>> extends Set<T> {
+interface Treap<T> extends Set<T> {
 
   T get(int index);
-
-  boolean contains(T value);
 
   boolean add(T value, double priority);
 

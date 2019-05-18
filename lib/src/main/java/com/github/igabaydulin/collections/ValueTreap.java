@@ -1,13 +1,11 @@
 package com.github.igabaydulin.collections;
 
 import com.github.igabaydulin.collections.utils.Reference;
-import java.util.Map;
+import java.util.NavigableMap;
 
-interface ValueTreap<K extends Comparable<K>, V> extends Map<K, V> {
+interface ValueTreap<K, V> extends NavigableMap<K, V> {
 
   V getByIndex(int index);
-
-  V get(K key);
 
   boolean contains(K key);
 
@@ -20,8 +18,6 @@ interface ValueTreap<K extends Comparable<K>, V> extends Map<K, V> {
   boolean putFront(K[] keys, V[] values, double[] priorities);
 
   boolean putFront(K[] keys, V[] values);
-
-  V remove(K key);
 
   boolean split(K key, Reference<ValueTreap<K, V>> left, Reference<ValueTreap<K, V>> right, boolean keep);
 
