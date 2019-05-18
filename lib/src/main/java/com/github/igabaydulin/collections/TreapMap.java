@@ -9,7 +9,7 @@ import java.util.Queue;
 import java.util.Random;
 import java.util.Set;
 
-public class TreapMap<K extends Comparable<K>, V> implements ValueTreap<K, V>, Map<K, V> {
+public class TreapMap<K extends Comparable<K>, V> implements ValueTreap<K, V> {
 
   private final Random random;
   private Node<K, V> root;

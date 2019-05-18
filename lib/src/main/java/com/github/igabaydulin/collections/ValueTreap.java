@@ -1,8 +1,9 @@
 package com.github.igabaydulin.collections;
 
 import com.github.igabaydulin.collections.utils.Reference;
+import java.util.Map;
 
-interface ValueTreap<K extends Comparable<K>, V> {
+interface ValueTreap<K extends Comparable<K>, V> extends Map<K, V> {
 
   V getByIndex(int index);
 
@@ -11,8 +12,6 @@ interface ValueTreap<K extends Comparable<K>, V> {
   boolean contains(K key);
 
   V put(K key, V value, double priority);
-
-  V put(K key, V value);
 
   boolean putBack(K[] keys, V[] values, double[] priorities);
 
@@ -30,9 +29,5 @@ interface ValueTreap<K extends Comparable<K>, V> {
 
   ValueTreap<K, V> merge(ValueTreap<K, V> right);
 
-  int size();
-
   int height();
-
-  boolean isEmpty();
 }
