@@ -683,7 +683,7 @@ public class TreapMap<K, V> implements ValueTreap<K, V> {
     Node(K key, V value, double priority, Comparator<K> comparator) {
       this.comparator = comparator;
       this.key = key;
-      this.comparable = (comparator != null) ? (Comparable<K>) key : null;
+      this.comparable = (comparator == null) ? (Comparable<K>) key : null;
       this.value = value;
       this.priority = priority;
       this.size = 1;
