@@ -1,5 +1,6 @@
 package com.github.igabaydulin.collections;
 
+import com.github.igabaydulin.collections.ValueTreap.Inclusion;
 import com.github.igabaydulin.collections.utils.Reference;
 import java.util.NavigableSet;
 
@@ -19,9 +20,7 @@ interface Treap<T> extends NavigableSet<T> {
 
   boolean delete(T value);
 
-  boolean split(T value, Reference<Treap<T>> left, Reference<Treap<T>> right, boolean keep);
-
-  boolean split(T value, Reference<Treap<T>> left, Reference<Treap<T>> right);
+  boolean split(T value, Reference<Treap<T>> left, Reference<Treap<T>> right, Inclusion inclusion);
 
   /**
    * Merges two treaps into one

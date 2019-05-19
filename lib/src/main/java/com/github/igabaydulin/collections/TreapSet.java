@@ -1,6 +1,7 @@
 package com.github.igabaydulin.collections;
 
 import com.github.igabaydulin.collections.TreapMap.Node;
+import com.github.igabaydulin.collections.ValueTreap.Inclusion;
 import com.github.igabaydulin.collections.utils.Reference;
 import java.util.Arrays;
 import java.util.Collection;
@@ -125,20 +126,15 @@ public class TreapSet<K> implements Treap<K> {
   }
 
   @Override
-  public boolean split(K value, Reference<Treap<K>> left, Reference<Treap<K>> right, boolean keep) {
+  public boolean split(K value, Reference<Treap<K>> left, Reference<Treap<K>> right, Inclusion inclusion) {
     Reference<ValueTreap<K, K>> leftDictionary = new Reference<>();
     Reference<ValueTreap<K, K>> rightDictionary = new Reference<>();
 
-    boolean contains = treapMap.split(value, leftDictionary, rightDictionary, keep, true);
+    boolean contains = treapMap.split(value, leftDictionary, rightDictionary, inclusion);
     left.set(new TreapSet<>((TreapMap<K, K>) leftDictionary.get()));
     right.set(new TreapSet<>((TreapMap<K, K>) rightDictionary.get()));
 
     return contains;
-  }
-
-  @Override
-  public boolean split(K value, Reference<Treap<K>> left, Reference<Treap<K>> right) {
-    return split(value, left, right, true);
   }
 
   @Override

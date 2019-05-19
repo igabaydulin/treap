@@ -19,14 +19,15 @@ public interface ValueTreap<K, V> extends NavigableMap<K, V> {
 
   boolean putFront(K[] keys, V[] values);
 
-  boolean split(
-      K key,
-      Reference<ValueTreap<K, V>> left,
-      Reference<ValueTreap<K, V>> right,
-      boolean inclusive,
-      boolean inclusiveLeft);
+  boolean split(K key, Reference<ValueTreap<K, V>> left, Reference<ValueTreap<K, V>> right, Inclusion inclusion);
 
   ValueTreap<K, V> merge(ValueTreap<K, V> right);
 
   int height();
+
+  enum Inclusion {
+    NONE,
+    LEFT,
+    RIGHT
+  }
 }

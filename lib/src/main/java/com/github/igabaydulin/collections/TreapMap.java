@@ -293,11 +293,7 @@ public class TreapMap<K, V> implements ValueTreap<K, V> {
 
   @Override
   public boolean split(
-      K value,
-      Reference<ValueTreap<K, V>> left,
-      Reference<ValueTreap<K, V>> right,
-      boolean inclusive,
-      boolean inclusiveLeft) {
+      K value, Reference<ValueTreap<K, V>> left, Reference<ValueTreap<K, V>> right, Inclusion inclusion) {
     if (isEmpty()) {
       left.set(null);
       right.set(null);
@@ -307,10 +303,10 @@ public class TreapMap<K, V> implements ValueTreap<K, V> {
     Reference<Node<K, V>> leftNode = new Reference<>();
     Reference<Node<K, V>> rightNode = new Reference<>();
 
-    boolean contains = root.split(value, leftNode, rightNode, inclusive, inclusiveLeft);
+    boolean contains = root.split(value, leftNode, rightNode, inclusion);
 
-    left.set(new TreapMap<>(leftNode.get()));
-    right.set(new TreapMap<>(rightNode.get()));
+    left.set(new TreapMap<>(leftNode.get(), random, comparator));
+    right.set(new TreapMap<>(rightNode.get(), random, comparator));
 
     return contains;
   }
@@ -596,15 +592,22 @@ public class TreapMap<K, V> implements ValueTreap<K, V> {
   @Override
   public TreapMap<K, V> headMap(K toKey, boolean inclusive) {
     Reference<ValueTreap<K, V>> left = new Reference<>();
-    split(toKey, left, new Reference<>(), inclusive, true);
-
+    if (inclusive) {
+      split(toKey, left, new Reference<>(), Inclusion.LEFT);
+    } else {
+      split(toKey, left, new Reference<>(), Inclusion.NONE);
+    }
     return (TreapMap<K, V>) left.get();
   }
 
   @Override
   public TreapMap<K, V> tailMap(K fromKey, boolean inclusive) {
     Reference<ValueTreap<K, V>> right = new Reference<>();
-    split(fromKey, new Reference<>(), right, inclusive, false);
+    if (inclusive) {
+      split(fromKey, new Reference<>(), right, Inclusion.RIGHT);
+    } else {
+      split(fromKey, new Reference<>(), right, Inclusion.NONE);
+    }
 
     return (TreapMap<K, V>) right.get();
   }
@@ -777,14 +780,9 @@ public class TreapMap<K, V> implements ValueTreap<K, V> {
       }
     }
 
-    boolean split(
-        K key,
-        Reference<Node<K, V>> leftRef,
-        Reference<Node<K, V>> rightRef,
-        boolean inclusive,
-        boolean leftInclusive) {
+    boolean split(K key, Reference<Node<K, V>> leftRef, Reference<Node<K, V>> rightRef, Inclusion inclusion) {
       int comparison = this.compare(key);
-      if (comparison < 0 || (inclusive && leftInclusive && comparison == 0)) {
+      if (comparison < 0 || (Inclusion.LEFT.equals(inclusion) && comparison == 0)) {
         if (Objects.isNull(this.getRight())) {
           leftRef.set(this);
           return false;
@@ -792,13 +790,13 @@ public class TreapMap<K, V> implements ValueTreap<K, V> {
           Reference<Node<K, V>> leftRight = new Reference<>();
           Reference<Node<K, V>> right = new Reference<>();
 
-          boolean result = this.getRight().split(key, leftRight, right, inclusive, leftInclusive);
+          boolean result = this.getRight().split(key, leftRight, right, inclusion);
           leftRef.set(
               new Node<>(this.getKey(), this.value, this.getPriority(), this.getLeft(), leftRight.get(), comparator));
           rightRef.set(right.get());
           return result;
         }
-      } else if (comparison > 0 || inclusive) {
+      } else if (comparison > 0 || Inclusion.RIGHT.equals(inclusion)) {
         if (Objects.isNull(this.getLeft())) {
           rightRef.set(this);
           return false;
@@ -806,7 +804,7 @@ public class TreapMap<K, V> implements ValueTreap<K, V> {
           Reference<Node<K, V>> left = new Reference<>();
           Reference<Node<K, V>> rightLeft = new Reference<>();
 
-          boolean result = this.getLeft().split(key, left, rightLeft, inclusive, leftInclusive);
+          boolean result = this.getLeft().split(key, left, rightLeft, inclusion);
           leftRef.set(left.get());
           rightRef.set(
               new Node<>(this.getKey(), this.value, this.getPriority(), rightLeft.get(), this.getRight(), comparator));

@@ -1,5 +1,6 @@
 package com.github.igabaydulin.collections;
 
+import com.github.igabaydulin.collections.ValueTreap.Inclusion;
 import com.github.igabaydulin.collections.arguments.provider.TreapImplementationProvider;
 import com.github.igabaydulin.collections.utils.Reference;
 import org.junit.jupiter.api.Assertions;
@@ -69,7 +70,7 @@ class TreapSizeTest {
     Reference<Treap<Integer>> left = new Reference<>();
     Reference<Treap<Integer>> right = new Reference<>();
 
-    treap.split(5, left, right);
+    treap.split(5, left, right, Inclusion.LEFT);
 
     Assertions.assertEquals(6, left.get().size());
     Assertions.assertEquals(4, right.get().size());
