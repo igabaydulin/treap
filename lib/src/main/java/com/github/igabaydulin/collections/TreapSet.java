@@ -4,8 +4,11 @@ import com.github.igabaydulin.collections.TreapMap.Node;
 import com.github.igabaydulin.collections.utils.Reference;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Iterator;
+import java.util.NavigableSet;
 import java.util.Objects;
+import java.util.SortedSet;
 import java.util.Stack;
 
 public class TreapSet<K> implements Treap<K> {
@@ -209,6 +212,91 @@ public class TreapSet<K> implements Treap<K> {
     }
 
     return array;
+  }
+
+  @Override
+  public K lower(K k) {
+    return treapMap.lowerKey(k);
+  }
+
+  @Override
+  public K floor(K k) {
+    return treapMap.floorKey(k);
+  }
+
+  @Override
+  public K ceiling(K k) {
+    return treapMap.ceilingKey(k);
+  }
+
+  @Override
+  public K higher(K k) {
+    return treapMap.higherKey(k);
+  }
+
+  @Override
+  public K pollFirst() {
+    return treapMap.pollFirstEntry().getKey();
+  }
+
+  @Override
+  public K pollLast() {
+    return treapMap.pollLastEntry().getKey();
+  }
+
+  @Override
+  public NavigableSet<K> descendingSet() {
+    return treapMap.descendingKeySet();
+  }
+
+  @Override
+  public Iterator<K> descendingIterator() {
+    return treapMap.new KeyIterator();
+  }
+
+  @Override
+  public NavigableSet<K> subSet(K fromElement, boolean fromInclusive, K toElement, boolean toInclusive) {
+    return treapMap.subMap(fromElement, fromInclusive, toElement, toInclusive).navigableKeySet();
+  }
+
+  @Override
+  public NavigableSet<K> headSet(K toElement, boolean inclusive) {
+    return treapMap.headMap(toElement, inclusive).navigableKeySet();
+  }
+
+  @Override
+  public NavigableSet<K> tailSet(K fromElement, boolean inclusive) {
+    return treapMap.tailMap(fromElement, inclusive).navigableKeySet();
+  }
+
+  @Override
+  public SortedSet<K> subSet(K fromElement, K toElement) {
+    return treapMap.subMap(fromElement, toElement).navigableKeySet();
+  }
+
+  @Override
+  public SortedSet<K> headSet(K toElement) {
+    return treapMap.headMap(toElement).navigableKeySet();
+  }
+
+  @Override
+  public SortedSet<K> tailSet(K fromElement) {
+    return treapMap.tailMap(fromElement).navigableKeySet();
+  }
+
+  @Override
+  public Comparator<? super K> comparator() {
+    return treapMap.comparator();
+  }
+
+  @Override
+  public K first() {
+    return treapMap.firstKey();
+  }
+
+  @Override
+  public K last() {
+    return treapMap.lastKey();
   }
 
   @Override

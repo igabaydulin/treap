@@ -1,9 +1,9 @@
 package com.github.igabaydulin.collections;
 
 import com.github.igabaydulin.collections.utils.Reference;
-import java.util.Set;
+import java.util.NavigableSet;
 
-interface Treap<T> extends Set<T> {
+interface Treap<T> extends NavigableSet<T> {
 
   T get(int index);
 

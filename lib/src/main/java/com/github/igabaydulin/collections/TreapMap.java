@@ -1019,7 +1019,7 @@ public class TreapMap<K, V> implements ValueTreap<K, V> {
     }
   }
 
-  private class KeyIterator implements Iterator<K> {
+  class KeyIterator implements Iterator<K> {
 
     private EntryIterator entryIterator = new EntryIterator();
 
