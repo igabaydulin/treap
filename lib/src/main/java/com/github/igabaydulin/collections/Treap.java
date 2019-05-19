@@ -18,8 +18,6 @@ interface Treap<T> extends NavigableSet<T> {
 
   boolean addFront(T[] values);
 
-  boolean delete(T value);
-
   boolean split(T value, Reference<Treap<T>> left, Reference<Treap<T>> right, Inclusion inclusion);
 
   /**

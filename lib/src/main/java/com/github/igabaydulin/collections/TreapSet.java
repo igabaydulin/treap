@@ -88,25 +88,18 @@ public class TreapSet<K> implements Treap<K> {
   }
 
   @Override
-  public boolean delete(K value) {
-    return treapMap.remove(value) != null;
-  }
-
-  @Override
-  @SuppressWarnings("unchecked")
   public boolean remove(Object value) {
     try {
-      return delete((K) value);
+      return treapMap.remove(value) != null;
     } catch (ClassCastException ex) {
       return false;
     }
   }
 
   @Override
-  @SuppressWarnings("unchecked")
   public boolean removeAll(Collection<?> c) {
     int currentSize = size();
-    c.forEach(it -> delete((K) it));
+    c.forEach(this::remove);
 
     return currentSize != size();
   }

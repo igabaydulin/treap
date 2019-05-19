@@ -63,7 +63,7 @@ public class TreapSetState {
       throw new IllegalStateException(String.format("Set does not contains %s", value));
     }
 
-    set.delete(value);
+    set.remove(value);
   }
 
   public TreapSet<Integer> getSet() {

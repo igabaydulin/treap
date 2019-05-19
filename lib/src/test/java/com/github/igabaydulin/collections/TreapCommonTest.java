@@ -42,7 +42,7 @@ class TreapCommonTest {
   @DisplayName("Testing deletion from single value treap")
   void deletion_from_single_value_treap_test(Treap<Integer> treap) {
     treap.add(4);
-    treap.delete(4);
+    treap.remove(4);
     Assertions.assertFalse(treap.contains(4));
     Assertions.assertEquals(0, treap.size());
   }
@@ -53,7 +53,7 @@ class TreapCommonTest {
   void deletion_from_double_value_treap_test(Treap<Integer> treap) {
     treap.add(4);
     treap.add(5);
-    treap.delete(4);
+    treap.remove(4);
     Assertions.assertTrue(treap.contains(5));
     Assertions.assertFalse(treap.contains(4));
     Assertions.assertEquals(1, treap.size());
@@ -65,8 +65,8 @@ class TreapCommonTest {
   void full_deletion_from_double_value_treap_test(Treap<Integer> treap) {
     treap.add(4);
     treap.add(5);
-    treap.delete(4);
-    treap.delete(5);
+    treap.remove(4);
+    treap.remove(5);
     Assertions.assertFalse(treap.contains(4));
     Assertions.assertFalse(treap.contains(5));
     Assertions.assertEquals(0, treap.size());
