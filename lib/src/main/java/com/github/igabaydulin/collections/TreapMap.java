@@ -1,8 +1,10 @@
 package com.github.igabaydulin.collections;
 
 import com.github.igabaydulin.collections.utils.Reference;
+import java.util.AbstractCollection;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.NavigableMap;
@@ -13,6 +15,9 @@ import java.util.Queue;
 import java.util.Random;
 import java.util.Set;
 import java.util.SortedMap;
+import java.util.SortedSet;
+import java.util.Stack;
+import java.util.stream.Stream;
 
 public class TreapMap<K, V> implements ValueTreap<K, V> {
 
@@ -52,18 +57,11 @@ public class TreapMap<K, V> implements ValueTreap<K, V> {
       throw new IndexOutOfBoundsException();
     }
 
-    Node<K, V> currentNode = root;
-    while (true) {
-      @SuppressWarnings("ConstantConditions")
-      int leftSize = currentNode.left == null ? 0 : currentNode.left.size;
-      if (leftSize == index) {
-        return currentNode.value;
-      }
-      currentNode = leftSize > index ? currentNode.left : currentNode.right;
-      if (leftSize < index) {
-        index -= leftSize + 1;
-      }
+    if (root == null) {
+      return null;
     }
+
+    return root.getByIndex(index).value;
   }
 
   @Override
@@ -294,7 +292,12 @@ public class TreapMap<K, V> implements ValueTreap<K, V> {
   }
 
   @Override
-  public boolean split(K value, Reference<ValueTreap<K, V>> left, Reference<ValueTreap<K, V>> right, boolean keep) {
+  public boolean split(
+      K value,
+      Reference<ValueTreap<K, V>> left,
+      Reference<ValueTreap<K, V>> right,
+      boolean inclusive,
+      boolean inclusiveLeft) {
     if (isEmpty()) {
       left.set(null);
       right.set(null);
@@ -304,17 +307,12 @@ public class TreapMap<K, V> implements ValueTreap<K, V> {
     Reference<Node<K, V>> leftNode = new Reference<>();
     Reference<Node<K, V>> rightNode = new Reference<>();
 
-    boolean contains = root.split(value, leftNode, rightNode, keep);
+    boolean contains = root.split(value, leftNode, rightNode, inclusive, inclusiveLeft);
 
     left.set(new TreapMap<>(leftNode.get()));
     right.set(new TreapMap<>(rightNode.get()));
 
     return contains;
-  }
-
-  @Override
-  public boolean split(K value, Reference<ValueTreap<K, V>> left, Reference<ValueTreap<K, V>> right) {
-    return split(value, left, right, true);
   }
 
   @Override
@@ -399,29 +397,30 @@ public class TreapMap<K, V> implements ValueTreap<K, V> {
     return navigableKeySet();
   }
 
-  // TODO: implement
   @Override
   public Collection<V> values() {
-    throw new UnsupportedOperationException();
+    return new Values();
   }
 
-  // TODO: implement
   @Override
   public Set<Entry<K, V>> entrySet() {
-    throw new UnsupportedOperationException();
+    return new EntrySet();
   }
 
   @Override
   public Node<K, V> lowerEntry(K key) {
     Node<K, V> node = root;
+    Node<K, V> result = null;
     while (node != null) {
       if (node.compare(key) < 0) {
-        return node;
+        result = node;
+        node = node.right;
+      } else {
+        node = node.left;
       }
-      node = node.left;
     }
 
-    return null;
+    return result;
   }
 
   @Override
@@ -437,14 +436,19 @@ public class TreapMap<K, V> implements ValueTreap<K, V> {
   @Override
   public Node<K, V> floorEntry(K key) {
     Node<K, V> node = root;
+    Node<K, V> result = null;
     while (node != null) {
-      if (node.compare(key) <= 0) {
+      if (node.compare(key) == 0) {
         return node;
+      } else if (node.compare(key) < 0) {
+        result = node;
+        node = node.right;
+      } else {
+        node = node.left;
       }
-      node = node.left;
     }
 
-    return null;
+    return result;
   }
 
   @Override
@@ -460,14 +464,19 @@ public class TreapMap<K, V> implements ValueTreap<K, V> {
   @Override
   public Node<K, V> ceilingEntry(K key) {
     Node<K, V> node = root;
+    Node<K, V> result = null;
     while (node != null) {
-      if (node.compare(key) >= 0) {
+      if (node.compare(key) == 0) {
         return node;
+      } else if (node.compare(key) > 0) {
+        result = node;
+        node = node.left;
+      } else {
+        node = node.right;
       }
-      node = node.left;
     }
 
-    return null;
+    return result;
   }
 
   @Override
@@ -483,19 +492,22 @@ public class TreapMap<K, V> implements ValueTreap<K, V> {
   @Override
   public Node<K, V> higherEntry(K key) {
     Node<K, V> node = root;
+    Node<K, V> result = null;
     while (node != null) {
       if (node.compare(key) > 0) {
-        return node;
+        result = node;
+        node = node.left;
+      } else {
+        node = node.right;
       }
-      node = node.left;
     }
 
-    return null;
+    return result;
   }
 
   @Override
   public K higherKey(K key) {
-    Entry<K, V> entry = ceilingEntry(key);
+    Entry<K, V> entry = higherEntry(key);
     if (entry != null) {
       return entry.getKey();
     }
@@ -531,92 +543,94 @@ public class TreapMap<K, V> implements ValueTreap<K, V> {
     return node;
   }
 
+  @SuppressWarnings("Duplicates")
   @Override
   public Node<K, V> pollFirstEntry() {
     Node<K, V> node = firstEntry();
     if (node != null) {
-      node.delete(node.key, new Reference<>());
+      if (node == root) {
+        root = root.right;
+      } else {
+        node.parent.setLeft(node.right);
+        Node.updateParentInfo(node.parent);
+      }
     }
     return node;
   }
 
+  @SuppressWarnings("Duplicates")
   @Override
   public Node<K, V> pollLastEntry() {
     Node<K, V> node = lastEntry();
     if (node != null) {
-      node.delete(node.key, new Reference<>());
+      if (node == root) {
+        root = root.left;
+      } else {
+        node.parent.setRight(node.getLeft());
+        Node.updateParentInfo(node.parent);
+      }
     }
     return node;
   }
 
   @Override
   public NavigableMap<K, V> descendingMap() {
-    throw new UnsupportedOperationException();
+    return new DescendingMap();
   }
 
   @Override
   public NavigableSet<K> navigableKeySet() {
-    throw new UnsupportedOperationException();
+    return new KeySet();
   }
 
   @Override
   public NavigableSet<K> descendingKeySet() {
-    throw new UnsupportedOperationException();
+    return new DescendingKeySet();
   }
 
   @Override
   public TreapMap<K, V> subMap(K fromKey, boolean fromInclusive, K toKey, boolean toInclusive) {
-    TreapMap<K, V> from = tailMap(fromKey, fromInclusive);
-    return from.headMap(toKey, toInclusive);
+    return tailMap(fromKey, fromInclusive).headMap(toKey, toInclusive);
   }
 
   @Override
   public TreapMap<K, V> headMap(K toKey, boolean inclusive) {
-    Node<K, V> node;
-    if (inclusive) {
-      node = floorEntry(toKey);
-    } else {
-      node = lowerEntry(toKey);
-    }
+    Reference<ValueTreap<K, V>> left = new Reference<>();
+    split(toKey, left, new Reference<>(), inclusive, true);
 
-    return new TreapMap<>(node, random, comparator);
+    return (TreapMap<K, V>) left.get();
   }
 
   @Override
   public TreapMap<K, V> tailMap(K fromKey, boolean inclusive) {
-    Node<K, V> node;
-    if (inclusive) {
-      node = ceilingEntry(fromKey);
-    } else {
-      node = higherEntry(fromKey);
-    }
+    Reference<ValueTreap<K, V>> right = new Reference<>();
+    split(fromKey, new Reference<>(), right, inclusive, false);
 
-    return new TreapMap<>(node, random, comparator);
+    return (TreapMap<K, V>) right.get();
   }
 
   @Override
-  public SortedMap<K, V> subMap(K fromKey, K toKey) {
+  public TreapMap<K, V> subMap(K fromKey, K toKey) {
     return subMap(fromKey, true, toKey, false);
   }
 
   @Override
-  public SortedMap<K, V> headMap(K toKey) {
+  public TreapMap<K, V> headMap(K toKey) {
     return headMap(toKey, false);
   }
 
   @Override
-  public SortedMap<K, V> tailMap(K fromKey) {
+  public TreapMap<K, V> tailMap(K fromKey) {
     return tailMap(fromKey, true);
   }
 
-  // TODO: Implement Comparator usage
   /**
    * Returns the comparator used to order the keys in this map, or {@code null} if this map uses the {@linkplain
    * Comparable natural ordering} of its keys.
    */
   @Override
   public Comparator<? super K> comparator() {
-    return null;
+    return comparator;
   }
 
   @Override
@@ -698,7 +712,26 @@ public class TreapMap<K, V> implements ValueTreap<K, V> {
       return null;
     }
 
-    private static <K, V> void updateParentInfo(Node<K, V> node) {
+    Node<K, V> getByIndex(int index) {
+      if (index < 0 || index >= size) {
+        throw new IndexOutOfBoundsException();
+      }
+
+      Node<K, V> currentNode = this;
+      while (true) {
+        @SuppressWarnings("ConstantConditions")
+        int leftSize = currentNode.left == null ? 0 : currentNode.left.size;
+        if (leftSize == index) {
+          return currentNode;
+        }
+        currentNode = leftSize > index ? currentNode.left : currentNode.right;
+        if (leftSize < index) {
+          index -= leftSize + 1;
+        }
+      }
+    }
+
+    static <K, V> void updateParentInfo(Node<K, V> node) {
       while (Objects.nonNull(node.getParent())) {
         node.getParent().updateInfo();
         node = node.getParent();
@@ -744,9 +777,14 @@ public class TreapMap<K, V> implements ValueTreap<K, V> {
       }
     }
 
-    boolean split(K key, Reference<Node<K, V>> leftRef, Reference<Node<K, V>> rightRef, boolean keepValue) {
+    boolean split(
+        K key,
+        Reference<Node<K, V>> leftRef,
+        Reference<Node<K, V>> rightRef,
+        boolean inclusive,
+        boolean leftInclusive) {
       int comparison = this.compare(key);
-      if (comparison < 0 || (keepValue && comparison == 0)) {
+      if (comparison < 0 || (inclusive && leftInclusive && comparison == 0)) {
         if (Objects.isNull(this.getRight())) {
           leftRef.set(this);
           return false;
@@ -754,13 +792,13 @@ public class TreapMap<K, V> implements ValueTreap<K, V> {
           Reference<Node<K, V>> leftRight = new Reference<>();
           Reference<Node<K, V>> right = new Reference<>();
 
-          boolean result = this.getRight().split(key, leftRight, right, keepValue);
+          boolean result = this.getRight().split(key, leftRight, right, inclusive, leftInclusive);
           leftRef.set(
               new Node<>(this.getKey(), this.value, this.getPriority(), this.getLeft(), leftRight.get(), comparator));
           rightRef.set(right.get());
           return result;
         }
-      } else if (comparison > 0) {
+      } else if (comparison > 0 || inclusive) {
         if (Objects.isNull(this.getLeft())) {
           rightRef.set(this);
           return false;
@@ -768,7 +806,7 @@ public class TreapMap<K, V> implements ValueTreap<K, V> {
           Reference<Node<K, V>> left = new Reference<>();
           Reference<Node<K, V>> rightLeft = new Reference<>();
 
-          boolean result = this.getLeft().split(key, left, rightLeft, keepValue);
+          boolean result = this.getLeft().split(key, left, rightLeft, inclusive, leftInclusive);
           leftRef.set(left.get());
           rightRef.set(
               new Node<>(this.getKey(), this.value, this.getPriority(), rightLeft.get(), this.getRight(), comparator));
@@ -779,10 +817,6 @@ public class TreapMap<K, V> implements ValueTreap<K, V> {
         rightRef.set(this.getRight());
         return true;
       }
-    }
-
-    boolean split(K value, Reference<Node<K, V>> leftRef, Reference<Node<K, V>> rightRef) {
-      return split(value, leftRef, rightRef, true);
     }
 
     private void updateInfo() {
@@ -859,6 +893,993 @@ public class TreapMap<K, V> implements ValueTreap<K, V> {
 
     int getHeight() {
       return height;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+      Node<?, ?> node = (Node<?, ?>) o;
+      return Objects.equals(key, node.key) && Objects.equals(value, node.value);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(key);
+    }
+  }
+
+  private class Values extends AbstractCollection<V> {
+
+    @Override
+    public Iterator<V> iterator() {
+      return new ValueIterator();
+    }
+
+    @Override
+    public int size() {
+      return TreapMap.this.size();
+    }
+  }
+
+  private class DescendingValues extends AbstractCollection<V> {
+
+    @Override
+    public Iterator<V> iterator() {
+      return new DescendingValueIterator();
+    }
+
+    @Override
+    public int size() {
+      return TreapMap.this.size();
+    }
+  }
+
+  private class EntryIterator implements Iterator<Entry<K, V>> {
+    Node<K, V> lastElement;
+    int visited = 0;
+
+    @Override
+    public boolean hasNext() {
+      return size() > 0 && (visited < size());
+    }
+
+    @Override
+    public Node<K, V> next() {
+      lastElement = root.getByIndex(visited++);
+      return lastElement;
+    }
+  }
+
+  private class DescendingEntryIterator implements Iterator<Entry<K, V>> {
+    Node<K, V> lastElement;
+    int visited = 0;
+
+    @Override
+    public boolean hasNext() {
+      return size() > 0 && (visited < size());
+    }
+
+    @Override
+    public Node<K, V> next() {
+      lastElement = root.getByIndex(size() - ++visited);
+      return lastElement;
+    }
+  }
+
+  private class ValueIterator implements Iterator<V> {
+
+    private EntryIterator entryIterator = new EntryIterator();
+
+    @Override
+    public boolean hasNext() {
+      return entryIterator.hasNext();
+    }
+
+    @Override
+    public V next() {
+      Node<K, V> next = entryIterator.next();
+      if (next == null) {
+        return null;
+      }
+      return next.value;
+    }
+
+    @Override
+    public void remove() {
+      TreapMap.this.remove(entryIterator.lastElement.key);
+    }
+  }
+
+  private class DescendingValueIterator implements Iterator<V> {
+
+    private DescendingEntryIterator entryIterator = new DescendingEntryIterator();
+
+    @Override
+    public boolean hasNext() {
+      return entryIterator.hasNext();
+    }
+
+    @Override
+    public V next() {
+      Node<K, V> next = entryIterator.next();
+      if (next == null) {
+        return null;
+      }
+      return next.value;
+    }
+
+    @Override
+    public void remove() {
+      TreapMap.this.remove(entryIterator.lastElement.key);
+    }
+  }
+
+  private class KeyIterator implements Iterator<K> {
+
+    private EntryIterator entryIterator = new EntryIterator();
+
+    @Override
+    public boolean hasNext() {
+      return entryIterator.hasNext();
+    }
+
+    @Override
+    public K next() {
+      Node<K, V> next = entryIterator.next();
+      if (next == null) {
+        return null;
+      }
+      return next.key;
+    }
+  }
+
+  private class DescendingKeyIterator implements Iterator<K> {
+
+    private DescendingEntryIterator nodeIterator = new DescendingEntryIterator();
+
+    @Override
+    public boolean hasNext() {
+      return nodeIterator.hasNext();
+    }
+
+    @Override
+    public K next() {
+      Node<K, V> next = nodeIterator.next();
+      if (next == null) {
+        return null;
+      }
+      return next.key;
+    }
+  }
+
+  private class KeySet implements NavigableSet<K> {
+
+    @Override
+    public K lower(K k) {
+      return TreapMap.this.lowerKey(k);
+    }
+
+    @Override
+    public K floor(K k) {
+      return TreapMap.this.floorKey(k);
+    }
+
+    @Override
+    public K ceiling(K k) {
+      return TreapMap.this.ceilingKey(k);
+    }
+
+    @Override
+    public K higher(K k) {
+      return TreapMap.this.higherKey(k);
+    }
+
+    @Override
+    public K pollFirst() {
+      Node<K, V> node = pollFirstEntry();
+      if (node == null) {
+        return null;
+      }
+      return node.key;
+    }
+
+    @Override
+    public K pollLast() {
+      Node<K, V> node = pollLastEntry();
+      if (node == null) {
+        return null;
+      }
+      return node.key;
+    }
+
+    @Override
+    public Iterator<K> iterator() {
+      return new KeyIterator();
+    }
+
+    @Override
+    public NavigableSet<K> descendingSet() {
+      return descendingKeySet();
+    }
+
+    @Override
+    public Iterator<K> descendingIterator() {
+      return new DescendingKeyIterator();
+    }
+
+    @Override
+    public NavigableSet<K> subSet(K fromElement, boolean fromInclusive, K toElement, boolean toInclusive) {
+      return subMap(fromElement, fromInclusive, toElement, toInclusive).navigableKeySet();
+    }
+
+    @Override
+    public NavigableSet<K> headSet(K toElement, boolean inclusive) {
+      return headMap(toElement, inclusive).navigableKeySet();
+    }
+
+    @Override
+    public NavigableSet<K> tailSet(K fromElement, boolean inclusive) {
+      return tailMap(fromElement, inclusive).navigableKeySet();
+    }
+
+    @Override
+    public SortedSet<K> subSet(K fromElement, K toElement) {
+      return subMap(fromElement, toElement).navigableKeySet();
+    }
+
+    @Override
+    public SortedSet<K> headSet(K toElement) {
+      return headMap(toElement).navigableKeySet();
+    }
+
+    @Override
+    public SortedSet<K> tailSet(K fromElement) {
+      return tailMap(fromElement).navigableKeySet();
+    }
+
+    @Override
+    public Comparator<? super K> comparator() {
+      return TreapMap.this.comparator;
+    }
+
+    @Override
+    public K first() {
+      return firstKey();
+    }
+
+    @Override
+    public K last() {
+      return lastKey();
+    }
+
+    @Override
+    public int size() {
+      return TreapMap.this.size();
+    }
+
+    @Override
+    public boolean isEmpty() {
+      return TreapMap.this.isEmpty();
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public boolean contains(Object o) {
+      return TreapMap.this.contains((K) o);
+    }
+
+    @Override
+    public Object[] toArray() {
+      return toArray(new Object[0]);
+    }
+
+    @SuppressWarnings({"unchecked", "Duplicates"})
+    @Override
+    public <T> T[] toArray(T[] a) {
+      int index = 0;
+      int size = size();
+      T[] array = (T[]) java.lang.reflect.Array.newInstance(a.getClass().getComponentType(), size);
+
+      if (Objects.isNull(root)) {
+        return array;
+      }
+
+      Stack<Node<K, V>> stack = new Stack<>();
+      Node<K, V> node = root;
+      while (!stack.empty() || Objects.nonNull(node)) {
+        if (Objects.nonNull(node)) {
+          stack.push(node);
+          node = node.getLeft();
+        } else {
+          node = stack.pop();
+          array[index++] = (T) node.getKey();
+          node = node.getRight();
+        }
+      }
+
+      return array;
+    }
+
+    /**
+     * {@link KeySet} is tied to {@link TreapMap} therefore we cannot add elements to {@link KeySet} (otherwise value
+     * would be undefined)
+     *
+     * @throws UnsupportedOperationException this operation is not supported
+     */
+    @Override
+    public boolean add(K k) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean remove(Object o) {
+      return TreapMap.this.remove(o) != null;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public boolean containsAll(Collection<?> c) {
+      return c.stream().map(it -> TreapMap.this.contains((K) it)).reduce((bool1, bool2) -> bool1 && bool2).orElse(true);
+    }
+
+    /**
+     * @see #add(Object)
+     * @throws UnsupportedOperationException this operation is not supported
+     */
+    @Override
+    public boolean addAll(Collection<? extends K> c) {
+      throw new UnsupportedOperationException();
+    }
+
+    @SuppressWarnings("Duplicates")
+    @Override
+    public boolean retainAll(Collection<?> c) {
+      return Stream.of(toArray())
+          .map(
+              it -> {
+                if (!c.contains(it)) {
+                  return remove(it);
+                }
+                return false;
+              })
+          .reduce((bool1, bool2) -> bool1 || bool2)
+          .orElse(false);
+    }
+
+    @Override
+    public boolean removeAll(Collection<?> c) {
+      return c.stream().map(this::remove).reduce((bool1, bool2) -> bool1 || bool2).orElse(false);
+    }
+
+    @Override
+    public void clear() {
+      root = null;
+    }
+  }
+
+  // TODO: Implement common parent for KeySet and DescendingKeySet
+  private class DescendingKeySet implements NavigableSet<K> {
+
+    @Override
+    public K lower(K k) {
+      return TreapMap.this.higherKey(k);
+    }
+
+    @Override
+    public K floor(K k) {
+      return TreapMap.this.ceilingKey(k);
+    }
+
+    @Override
+    public K ceiling(K k) {
+      return TreapMap.this.floorKey(k);
+    }
+
+    @Override
+    public K higher(K k) {
+      return TreapMap.this.lowerKey(k);
+    }
+
+    @Override
+    public K pollFirst() {
+      Node<K, V> node = pollLastEntry();
+      if (node == null) {
+        return null;
+      }
+      return node.key;
+    }
+
+    @Override
+    public K pollLast() {
+      Node<K, V> node = pollFirstEntry();
+      if (node == null) {
+        return null;
+      }
+      return node.key;
+    }
+
+    @Override
+    public Iterator<K> iterator() {
+      return new DescendingKeyIterator();
+    }
+
+    @Override
+    public NavigableSet<K> descendingSet() {
+      return new KeySet();
+    }
+
+    @Override
+    public Iterator<K> descendingIterator() {
+      return new KeyIterator();
+    }
+
+    @Override
+    public NavigableSet<K> subSet(K fromElement, boolean fromInclusive, K toElement, boolean toInclusive) {
+      return subMap(toElement, toInclusive, fromElement, fromInclusive).descendingKeySet();
+    }
+
+    @Override
+    public NavigableSet<K> headSet(K toElement, boolean inclusive) {
+      return tailMap(toElement, inclusive).descendingKeySet();
+    }
+
+    @Override
+    public NavigableSet<K> tailSet(K fromElement, boolean inclusive) {
+      return headMap(fromElement, inclusive).descendingKeySet();
+    }
+
+    @Override
+    public SortedSet<K> subSet(K fromElement, K toElement) {
+      return subMap(fromElement, toElement).descendingKeySet();
+    }
+
+    @Override
+    public SortedSet<K> headSet(K toElement) {
+      return tailMap(toElement).descendingKeySet();
+    }
+
+    @Override
+    public SortedSet<K> tailSet(K fromElement) {
+      return headMap(fromElement).descendingKeySet();
+    }
+
+    @Override
+    public Comparator<? super K> comparator() {
+      if (comparator == null) {
+        return null;
+      }
+
+      return comparator.reversed();
+    }
+
+    @Override
+    public K first() {
+      return lastKey();
+    }
+
+    @Override
+    public K last() {
+      return firstKey();
+    }
+
+    @Override
+    public int size() {
+      return TreapMap.this.size();
+    }
+
+    @Override
+    public boolean isEmpty() {
+      return TreapMap.this.isEmpty();
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public boolean contains(Object o) {
+      return TreapMap.this.contains((K) o);
+    }
+
+    @Override
+    public Object[] toArray() {
+      return toArray(new Object[0]);
+    }
+
+    @SuppressWarnings({"unchecked", "Duplicates"})
+    @Override
+    public <T> T[] toArray(T[] a) {
+      int index = 0;
+      int size = size();
+      T[] array = (T[]) java.lang.reflect.Array.newInstance(a.getClass().getComponentType(), size);
+
+      if (Objects.isNull(root)) {
+        return array;
+      }
+
+      Stack<Node<K, V>> stack = new Stack<>();
+      Node<K, V> node = root;
+      while (!stack.empty() || Objects.nonNull(node)) {
+        if (Objects.nonNull(node)) {
+          stack.push(node);
+          node = node.getLeft();
+        } else {
+          node = stack.pop();
+          array[index++] = (T) node.getValue();
+          node = node.getRight();
+        }
+      }
+
+      return array;
+    }
+
+    /**
+     * {@link KeySet} is tied to {@link TreapMap} therefore we cannot add elements to {@link KeySet} (otherwise value
+     * would be undefined)
+     *
+     * @throws UnsupportedOperationException this operation is not supported
+     */
+    @Override
+    public boolean add(K k) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean remove(Object o) {
+      return TreapMap.this.remove(o) != null;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public boolean containsAll(Collection<?> c) {
+      return c.stream().map(it -> TreapMap.this.contains((K) it)).reduce((bool1, bool2) -> bool1 && bool2).orElse(true);
+    }
+
+    /**
+     * @see #add(Object)
+     * @throws UnsupportedOperationException this operation is not supported
+     */
+    @Override
+    public boolean addAll(Collection<? extends K> c) {
+      throw new UnsupportedOperationException();
+    }
+
+    @SuppressWarnings("Duplicates")
+    @Override
+    public boolean retainAll(Collection<?> c) {
+      return Stream.of(toArray())
+          .map(
+              it -> {
+                if (!c.contains(it)) {
+                  return remove(it);
+                }
+                return false;
+              })
+          .reduce((bool1, bool2) -> bool1 || bool2)
+          .orElse(false);
+    }
+
+    @Override
+    public boolean removeAll(Collection<?> c) {
+      return c.stream().map(this::remove).reduce((bool1, bool2) -> bool1 || bool2).orElse(false);
+    }
+
+    @Override
+    public void clear() {
+      root = null;
+    }
+  }
+
+  private class DescendingMap implements NavigableMap<K, V> {
+
+    @Override
+    public Entry<K, V> lowerEntry(K key) {
+      return TreapMap.this.higherEntry(key);
+    }
+
+    @Override
+    public K lowerKey(K key) {
+      return TreapMap.this.higherKey(key);
+    }
+
+    @Override
+    public Entry<K, V> floorEntry(K key) {
+      return TreapMap.this.ceilingEntry(key);
+    }
+
+    @Override
+    public K floorKey(K key) {
+      return TreapMap.this.ceilingKey(key);
+    }
+
+    @Override
+    public Entry<K, V> ceilingEntry(K key) {
+      return TreapMap.this.floorEntry(key);
+    }
+
+    @Override
+    public K ceilingKey(K key) {
+      return TreapMap.this.floorKey(key);
+    }
+
+    @Override
+    public Entry<K, V> higherEntry(K key) {
+      return TreapMap.this.lowerEntry(key);
+    }
+
+    @Override
+    public K higherKey(K key) {
+      return TreapMap.this.lowerKey(key);
+    }
+
+    @Override
+    public Entry<K, V> firstEntry() {
+      return TreapMap.this.lastEntry();
+    }
+
+    @Override
+    public Entry<K, V> lastEntry() {
+      return TreapMap.this.firstEntry();
+    }
+
+    @Override
+    public Entry<K, V> pollFirstEntry() {
+      return TreapMap.this.pollLastEntry();
+    }
+
+    @Override
+    public Entry<K, V> pollLastEntry() {
+      return TreapMap.this.pollFirstEntry();
+    }
+
+    @Override
+    public NavigableMap<K, V> descendingMap() {
+      return TreapMap.this;
+    }
+
+    @Override
+    public NavigableSet<K> navigableKeySet() {
+      return TreapMap.this.descendingKeySet();
+    }
+
+    @Override
+    public NavigableSet<K> descendingKeySet() {
+      return TreapMap.this.navigableKeySet();
+    }
+
+    @Override
+    public NavigableMap<K, V> subMap(K fromKey, boolean fromInclusive, K toKey, boolean toInclusive) {
+      return TreapMap.this.subMap(toKey, toInclusive, fromKey, fromInclusive);
+    }
+
+    @Override
+    public NavigableMap<K, V> headMap(K toKey, boolean inclusive) {
+      return TreapMap.this.tailMap(toKey, inclusive);
+    }
+
+    @Override
+    public NavigableMap<K, V> tailMap(K fromKey, boolean inclusive) {
+      return TreapMap.this.headMap(fromKey, inclusive);
+    }
+
+    @Override
+    public SortedMap<K, V> subMap(K fromKey, K toKey) {
+      return TreapMap.this.subMap(toKey, fromKey);
+    }
+
+    @Override
+    public SortedMap<K, V> headMap(K toKey) {
+      return TreapMap.this.tailMap(toKey, false);
+    }
+
+    @Override
+    public SortedMap<K, V> tailMap(K fromKey) {
+      return TreapMap.this.headMap(fromKey, true);
+    }
+
+    @Override
+    public Comparator<? super K> comparator() {
+      if (comparator == null) {
+        return null;
+      }
+      return comparator.reversed();
+    }
+
+    @Override
+    public K firstKey() {
+      return TreapMap.this.lastKey();
+    }
+
+    @Override
+    public K lastKey() {
+      return TreapMap.this.firstKey();
+    }
+
+    @Override
+    public Set<K> keySet() {
+      return descendingKeySet();
+    }
+
+    @Override
+    public Collection<V> values() {
+      return new DescendingValues();
+    }
+
+    @Override
+    public Set<Entry<K, V>> entrySet() {
+      return new DescendingEntrySet();
+    }
+
+    @Override
+    public int size() {
+      return TreapMap.this.size();
+    }
+
+    @Override
+    public boolean isEmpty() {
+      return TreapMap.this.isEmpty();
+    }
+
+    @Override
+    public boolean containsKey(Object key) {
+      return TreapMap.this.containsKey(key);
+    }
+
+    @Override
+    public boolean containsValue(Object value) {
+      return TreapMap.this.containsValue(value);
+    }
+
+    @Override
+    public V get(Object key) {
+      return TreapMap.this.get(key);
+    }
+
+    @Override
+    public V put(K key, V value) {
+      return TreapMap.this.put(key, value);
+    }
+
+    @Override
+    public V remove(Object key) {
+      return TreapMap.this.remove(key);
+    }
+
+    @Override
+    public void putAll(Map<? extends K, ? extends V> m) {
+      TreapMap.this.putAll(m);
+    }
+
+    @Override
+    public void clear() {
+      TreapMap.this.clear();
+    }
+  }
+
+  private class EntrySet implements Set<Entry<K, V>> {
+
+    @Override
+    public int size() {
+      return TreapMap.this.size();
+    }
+
+    @Override
+    public boolean isEmpty() {
+      return TreapMap.this.isEmpty();
+    }
+
+    @SuppressWarnings("Duplicates")
+    @Override
+    public boolean contains(Object o) {
+      if (o instanceof Node) {
+        Node node = (Node) o;
+        V v = TreapMap.this.get(node.getKey());
+        if (v == null) {
+          return false;
+        }
+
+        return v.equals(node.value);
+      } else {
+        return false;
+      }
+    }
+
+    @Override
+    public Iterator<Entry<K, V>> iterator() {
+      return new EntryIterator();
+    }
+
+    @Override
+    public Object[] toArray() {
+      return toArray(new Object[0]);
+    }
+
+    @SuppressWarnings({"Duplicates", "unchecked"})
+    @Override
+    public <T> T[] toArray(T[] a) {
+      int index = 0;
+      int size = size();
+      T[] array = (T[]) java.lang.reflect.Array.newInstance(a.getClass().getComponentType(), size);
+
+      if (Objects.isNull(root)) {
+        return array;
+      }
+
+      Stack<Node<K, V>> stack = new Stack<>();
+      Node<K, V> node = root;
+      while (!stack.empty() || Objects.nonNull(node)) {
+        if (Objects.nonNull(node)) {
+          stack.push(node);
+          node = node.getLeft();
+        } else {
+          node = stack.pop();
+          array[index++] = (T) node;
+          node = node.getRight();
+        }
+      }
+
+      return array;
+    }
+
+    @Override
+    public boolean add(Entry<K, V> kvNode) {
+      return TreapMap.this.put(kvNode.getKey(), kvNode.getValue()) == null;
+    }
+
+    @Override
+    public boolean remove(Object o) {
+      return TreapMap.this.remove(((Node) o).key) != null;
+    }
+
+    @Override
+    public boolean containsAll(Collection<?> c) {
+      return c.stream().map(this::contains).reduce((bool1, bool2) -> bool1 && bool2).orElse(true);
+    }
+
+    @Override
+    public boolean addAll(Collection<? extends Entry<K, V>> c) {
+      return c.stream().map(this::add).reduce((bool1, bool2) -> bool1 || bool2).orElse(false);
+    }
+
+    @SuppressWarnings("Duplicates")
+    @Override
+    public boolean retainAll(Collection<?> c) {
+      Object[] values = toArray();
+      return Stream.of(values)
+          .map(
+              it -> {
+                if (!c.contains(it)) {
+                  return remove(it);
+                }
+                return false;
+              })
+          .reduce((bool1, bool2) -> bool1 || bool2)
+          .orElse(false);
+    }
+
+    @Override
+    public boolean removeAll(Collection<?> c) {
+      return c.stream().map(this::remove).reduce((bool1, bool2) -> bool1 || bool2).orElse(false);
+    }
+
+    @Override
+    public void clear() {
+      TreapMap.this.clear();
+    }
+  }
+
+  // TODO: Implement EntrySet and DescendingEntrySet parent
+  private class DescendingEntrySet implements Set<Entry<K, V>> {
+
+    @Override
+    public int size() {
+      return TreapMap.this.size();
+    }
+
+    @Override
+    public boolean isEmpty() {
+      return TreapMap.this.isEmpty();
+    }
+
+    @SuppressWarnings("Duplicates")
+    @Override
+    public boolean contains(Object o) {
+      if (o instanceof Node) {
+        Node node = (Node) o;
+        V v = TreapMap.this.get(node.getKey());
+        if (v == null) {
+          return false;
+        }
+
+        return v.equals(node.value);
+      } else {
+        return false;
+      }
+    }
+
+    @Override
+    public Iterator<Entry<K, V>> iterator() {
+      return new DescendingEntryIterator();
+    }
+
+    @Override
+    public Object[] toArray() {
+      return toArray(new Object[0]);
+    }
+
+    @SuppressWarnings({"Duplicates", "unchecked"})
+    @Override
+    public <T> T[] toArray(T[] a) {
+      int index = 0;
+      int size = size();
+      T[] array = (T[]) java.lang.reflect.Array.newInstance(a.getClass().getComponentType(), size);
+
+      if (Objects.isNull(root)) {
+        return array;
+      }
+
+      Stack<Node<K, V>> stack = new Stack<>();
+      Node<K, V> node = root;
+      while (!stack.empty() || Objects.nonNull(node)) {
+        if (Objects.nonNull(node)) {
+          stack.push(node);
+          node = node.getLeft();
+        } else {
+          node = stack.pop();
+          array[index++] = (T) node;
+          node = node.getRight();
+        }
+      }
+
+      return array;
+    }
+
+    @Override
+    public boolean add(Entry<K, V> kvNode) {
+      return TreapMap.this.put(kvNode.getKey(), kvNode.getValue()) == null;
+    }
+
+    @Override
+    public boolean remove(Object o) {
+      return TreapMap.this.remove(o) != null;
+    }
+
+    @Override
+    public boolean containsAll(Collection<?> c) {
+      return c.stream().map(this::contains).reduce((bool1, bool2) -> bool1 && bool2).orElse(true);
+    }
+
+    @Override
+    public boolean addAll(Collection<? extends Entry<K, V>> c) {
+      return c.stream().map(this::add).reduce((bool1, bool2) -> bool1 || bool2).orElse(false);
+    }
+
+    @SuppressWarnings("Duplicates")
+    @Override
+    public boolean retainAll(Collection<?> c) {
+      Object[] values = toArray();
+      return Stream.of(values)
+          .map(
+              it -> {
+                if (!c.contains(it)) {
+                  return remove(it);
+                }
+                return false;
+              })
+          .reduce((bool1, bool2) -> bool1 || bool2)
+          .orElse(false);
+    }
+
+    @Override
+    public boolean removeAll(Collection<?> c) {
+      return c.stream().map(this::remove).reduce((bool1, bool2) -> bool1 || bool2).orElse(false);
+    }
+
+    @Override
+    public void clear() {
+      TreapMap.this.clear();
     }
   }
 }

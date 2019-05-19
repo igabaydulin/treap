@@ -126,7 +126,7 @@ public class TreapSet<K> implements Treap<K> {
     Reference<ValueTreap<K, K>> leftDictionary = new Reference<>();
     Reference<ValueTreap<K, K>> rightDictionary = new Reference<>();
 
-    boolean contains = treapMap.split(value, leftDictionary, rightDictionary, keep);
+    boolean contains = treapMap.split(value, leftDictionary, rightDictionary, keep, true);
     left.set(new TreapSet<>((TreapMap<K, K>) leftDictionary.get()));
     right.set(new TreapSet<>((TreapMap<K, K>) rightDictionary.get()));
 
