@@ -667,6 +667,7 @@ public class TreapMap<K, V> implements ValueTreap<K, V> {
     private Comparator<K> comparator;
 
     private K key;
+    private Comparable<K> comparable;
     private V value;
     private double priority;
 
@@ -678,9 +679,11 @@ public class TreapMap<K, V> implements ValueTreap<K, V> {
     private int size;
     private int height;
 
+    @SuppressWarnings("unchecked")
     Node(K key, V value, double priority, Comparator<K> comparator) {
       this.comparator = comparator;
       this.key = key;
+      this.comparable = (comparator != null) ? (Comparable<K>) key : null;
       this.value = value;
       this.priority = priority;
       this.size = 1;
@@ -695,8 +698,7 @@ public class TreapMap<K, V> implements ValueTreap<K, V> {
 
     private int compare(K key) {
       if (comparator == null) {
-        //noinspection unchecked
-        return ((Comparable<? super K>) this.key).compareTo(key);
+        return comparable.compareTo(key);
       }
       return comparator.compare(this.key, key);
     }
