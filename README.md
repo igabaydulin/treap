@@ -51,16 +51,16 @@ public static void main(String[] args) {
     Reference<Treap<Integer>> left = new Reference<>();
     Reference<Treap<Integer>> right = new Reference<>();
 
-    treap.split(3, left, right, false);
+    treap.split(3, left, right, Inclusion.RIGHT);
 
     System.out.println(String.format("left: %s", left));
     System.out.println(String.format("right: %s", right));
 }
 ```
-Output;
+Output:
 ```
 left: TreapSet{array=[1, 2]}
-right: TreapSet{array=[4, 5]}
+right: TreapSet{array=[3, 4, 5]}
 ```
 
 ## Project Hierarchy
