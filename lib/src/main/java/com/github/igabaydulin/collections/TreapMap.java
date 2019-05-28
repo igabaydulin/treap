@@ -268,16 +268,17 @@ public class TreapMap<K, V> implements ValueTreap<K, V> {
     return get(value) != null;
   }
 
+  @SuppressWarnings("unchecked")
   @Override
   public V get(Object key) {
     if (isEmpty()) {
       return null;
     }
 
-    //noinspection unchecked
     return root.get((K) key);
   }
 
+  @SuppressWarnings("unchecked")
   @Override
   public V remove(Object key) {
     if (isEmpty()) {
@@ -285,7 +286,6 @@ public class TreapMap<K, V> implements ValueTreap<K, V> {
     }
 
     Reference<V> removedValue = new Reference<>();
-    //noinspection unchecked
     root = root.delete((K) key, removedValue);
 
     return removedValue.get();

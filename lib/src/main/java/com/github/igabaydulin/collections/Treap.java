@@ -4,7 +4,7 @@ import com.github.igabaydulin.collections.ValueTreap.Inclusion;
 import com.github.igabaydulin.collections.utils.Reference;
 import java.util.NavigableSet;
 
-interface Treap<T> extends NavigableSet<T> {
+public interface Treap<T> extends NavigableSet<T> {
 
   T get(int index);
 
