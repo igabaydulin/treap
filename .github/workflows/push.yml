@@ -1,0 +1,18 @@
+on: push
+name: JMH Workflow
+jobs:
+  jUnit:
+    name: JUnit
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: JUnit
+      uses: MrRamych/gradle-actions/openjdk-12@2.1
+      with:
+        entrypoint: ./lib/gradlew
+        args: test -p ./lib
+    - name: JMH
+      uses: MrRamych/gradle-actions/openjdk-12@2.1
+      with:
+        entrypoint: ./lib/gradlew
+        args: jmh -p ./lib
